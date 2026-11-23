@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShaLo — Send files both ways on your Wi-Fi</title>
+  <meta name="description" content="ShaLo lets you send files both ways between any devices on your local Wi-Fi.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A4%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sun: #FFE45E;
+      --pink: #FF3D8B;
+      --blue: #2D5BFF;
+      --ink: #1B1240;
+      --white: #fff;
+      --display: "Bagel Fat One", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+      --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--sun); scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--sun);
+      color: var(--ink);
+      font: 400 1.0625rem/1.55 var(--body);
+      padding: clamp(16px, 4vw, 40px);
+    }
+
+    .wrap { max-width: 1080px; margin: 0 auto; }
+
+    :focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+      border-radius: 12px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px 24px;
+      margin-bottom: clamp(18px, 3vw, 28px);
+    }
+
+    h1 {
+      margin: 0;
+      font: 400 clamp(3.5rem, 13vw, 6.25rem)/.9 var(--display);
+      letter-spacing: -.01em;
+      -webkit-text-stroke: 3px var(--ink);
+      paint-order: stroke fill;
+      text-shadow: 4px 4px 0 var(--ink);
+    }
+    h1 .sha { color: var(--pink); }
+    h1 .lo { color: var(--blue); }
+
+    .tag {
+      margin: 10px 0 0;
+      font-weight: 600;
+      font-size: 1.12rem;
+      max-width: 38ch;
+    }
+
+    .nav-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: clamp(20px, 3.5vw, 32px);
+    }
+
+    .tab-btn {
+      font: 700 .98rem var(--body);
+      color: var(--ink);
+      background: var(--white);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      padding: 9px 20px;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--ink);
+      transition: transform .12s, box-shadow .12s, background .12s;
+    }
+    .tab-btn:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
+    .tab-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+    .tab-btn[aria-selected="true"] { background: var(--pink); }
+
+    [hidden] { display: none !important; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font: 700 1rem var(--body);
+      color: var(--white);
+      background: var(--ink);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      padding: 11px 22px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 4px 4px 0 var(--blue);
+      transition: transform .12s, box-shadow .12s;
+    }
+    .btn:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--blue); }
+    .btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--blue); }
+
+    .btn.pink {
+      background: var(--pink);
+      color: var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    .btn.pink:hover { box-shadow: 6px 6px 0 var(--ink); }
+    .btn.pink:active { box-shadow: 1px 1px 0 var(--ink); }
+
+    .btn.white {
+      background: var(--white);
+      color: var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      padding: 8px 16px;
+      font-size: .92rem;
+    }
+    .btn.white:hover { box-shadow: 5px 5px 0 var(--ink); }
+    .btn.white:active { box-shadow: 1px 1px 0 var(--ink); }
+
+    /* Cards & Typography */
+    .card {
+      background: var(--white);
+      border: 3px solid var(--ink);
+      border-radius: 28px;
+      box-shadow: 6px 6px 0 var(--ink);
+      padding: clamp(20px, 3.5vw, 30px);
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font: 400 clamp(1.55rem, 3vw, 2rem)/1.1 var(--display);
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      font: 400 1.25rem/1.15 var(--display);
+    }
+
+    p { margin: 0; }
+    p + p { margin-top: 10px; }
+
+    code {
+      background: var(--sun);
+      border: 2px solid var(--ink);
+      border-radius: 7px;
+      padding: 1px 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      font-size: .86rem;
+    }
+
+    /* Hero + Screenshot */
+    .hero-grid {
+      display: grid;
+      gap: clamp(20px, 3vw, 30px);
+      margin-bottom: clamp(24px, 4vw, 36px);
+    }
+    @media (min-width: 880px) {
+      .hero-grid {
+        grid-template-columns: 5fr 6fr;
+        align-items: stretch;
+      }
+    }
+
+    .intro-card {
+      border-radius: 36px 28px 40px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .devices {
+      width: 100%;
+      max-width: 330px;
+      height: auto;
+      display: block;
+      margin: 14px auto 16px;
+      overflow: visible;
+    }
+
+    .packet {
+      fill: var(--sun);
+      stroke: var(--ink);
+      stroke-width: 3;
+      animation: hop 2.2s ease-in-out infinite;
+    }
+
+    @keyframes hop {
+      0%, 100% { transform: translate(0, 0); }
+      35% { transform: translate(46px, -24px); }
+      65% { transform: translate(92px, 0); }
+      80% { transform: translate(92px, -6px); }
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .shot-card { display: flex; flex-direction: column; }
+
+    .browser-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    .dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 2.5px solid var(--ink);
+      display: inline-block;
+    }
+    .dot.r { background: var(--pink); }
+    .dot.y { background: var(--sun); }
+    .dot.b { background: var(--blue); }
+
+    .url-pill {
+      margin-left: 6px;
+      background: var(--sun);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 2px 12px;
+      font-size: .84rem;
+      font-weight: 700;
+    }
+
+    .shot-frame {
+      flex: 1;
+      min-height: 250px;
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--sun);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shot-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .shot-placeholder {
+      padding: 24px;
+      text-align: center;
+      border: 3px dashed var(--ink);
+      border-radius: 14px;
+      margin: 14px;
+      background: var(--white);
+      width: calc(100% - 28px);
+    }
+
+    .shot-placeholder strong {
+      display: block;
+      font: 400 1.35rem var(--display);
+      margin-bottom: 6px;
+    }
+
+    /* Setup / Quick Start */
+    .setup-section {
+      margin-bottom: clamp(24px, 4vw, 36px);
+    }
+
+    .steps {
+      margin: 12px 0 16px;
+      padding-left: 20px;
+      display: grid;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .code-box {
+      background: var(--ink);
+      color: var(--white);
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      padding: 16px 20px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .95rem;
+      overflow-x: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .code-box pre {
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    .copy-btn {
+      flex: none;
+      font: 700 .85rem var(--body);
+      background: var(--sun);
+      color: var(--ink);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: var(--pink); }
+
+    /* Phone to Phone */
+    .phone-section { margin-bottom: clamp(24px, 4vw, 36px); }
+
+    .phone-grid {
+      display: grid;
+      gap: clamp(16px, 2.5vw, 22px);
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    }
+
+    .phone-card {
+      background: var(--white);
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 5px 5px 0 var(--ink);
+      padding: 20px;
+    }
+
+    .phone-card ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+    }
+
+    /* Security */
+    .security { margin-bottom: clamp(24px, 4vw, 36px); }
+
+    .security-box {
+      background: var(--white);
+      border: 3px solid var(--ink);
+      border-left: 12px solid var(--pink);
+      border-radius: 24px;
+      box-shadow: 6px 6px 0 var(--ink);
+      padding: clamp(20px, 3vw, 26px);
+    }
+
+    /* Creator Tab */
+    .creator-grid {
+      display: grid;
+      gap: clamp(20px, 3vw, 28px);
+      margin-bottom: clamp(24px, 4vw, 36px);
+    }
+    @media (min-width: 820px) {
+      .creator-grid {
+        grid-template-columns: 7fr 5fr;
+        align-items: start;
+      }
+    }
+
+    .pill {
+      display: inline-block;
+      background: var(--blue);
+      color: var(--white);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      padding: 3px 13px;
+      font-weight: 700;
+      font-size: .86rem;
+      margin-bottom: 10px;
+    }
+    .pill.sun { background: var(--sun); color: var(--ink); }
+
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      border-radius: 22px;
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      object-fit: cover;
+      display: block;
+      margin-bottom: 16px;
+      background: var(--sun);
+    }
+    .profile-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+    .profile-row h2 { margin: 0 0 4px; }
+    @media (max-width: 520px) {
+      .profile-row { flex-direction: column; align-items: center; text-align: center; }
+      .profile-pic { margin-left: auto; margin-right: auto; }
+    }
+
+    .skill-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    /* Footer */
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      padding-top: 6px;
+    }
+
+    footer a {
+      color: var(--ink);
+      text-decoration: underline;
+      text-decoration-thickness: 2.5px;
+    }
+
+    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
+        <p class="tag">Send files both ways between any devices on this Wi-Fi.</p>
+      </div>
+      <div class="nav-actions">
+        <a class="btn white" href="#setup">Setup</a>
+        <a class="btn" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">GitHub Repo</a>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Page tabs">
+      <button class="tab-btn" id="tab-project" role="tab" aria-selected="true" aria-controls="panel-project">Project</button>
+      <button class="tab-btn" id="tab-creator" role="tab" aria-selected="false" aria-controls="panel-creator">Creator</button>
+    </nav>
+
+    <!-- PROJECT TAB -->
+    <div id="panel-project" role="tabpanel" aria-labelledby="tab-project">
+      <main class="hero-grid">
+        <section class="card intro-card" aria-labelledby="heroH">
+          <div>
+            <h2 id="heroH">Local Wi-Fi file sharing</h2>
+            <svg class="devices" viewBox="0 0 320 142" role="img" aria-label="This device sharing with other devices in both directions">
+              <rect x="14" y="14" width="50" height="92" rx="12" fill="#FF3D8B" stroke="#1B1240" stroke-width="3"/>
+              <rect x="23" y="26" width="32" height="56" rx="5" fill="#fff" stroke="#1B1240" stroke-width="2"/>
+              <rect x="224" y="26" width="84" height="58" rx="8" fill="#2D5BFF" stroke="#1B1240" stroke-width="3"/>
+              <rect x="233" y="35" width="66" height="40" rx="4" fill="#fff" stroke="#1B1240" stroke-width="2"/>
+              <rect x="210" y="88" width="112" height="12" rx="6" fill="#1B1240"/>
+              <path d="M84 60H204" stroke="#1B1240" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" fill="none"/>
+              <path d="M86 50L76 60l10 10M202 50l10 10-10 10" stroke="#1B1240" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle class="packet" cx="104" cy="60" r="9"/>
+              <text x="39" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">This device</text>
+              <text x="266" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">Other devices</text>
+            </svg>
+            <p>Run ShaLo on a host device and open the local link in any browser on the same Wi-Fi to upload and download files two ways.</p>
+          </div>
+          <div class="cta-row">
+            <a class="btn pink" href="#setup">Run Locally</a>
+            <a class="btn white" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">Source Code</a>
+          </div>
+        </section>
+
+        <section class="card shot-card" aria-labelledby="previewH">
+          <div class="browser-bar">
+            <span class="dot r"></span>
+            <span class="dot y"></span>
+            <span class="dot b"></span>
+            <span class="url-pill" id="previewH">App Preview</span>
+          </div>
+          <div class="shot-frame">
+            <img
+              src="screenshot.png"
+              alt="ShaLo app screenshot"
+              onerror="this.style.display='none'; document.getElementById('shotFallback').style.display='block';"
+            >
+            <div class="shot-placeholder" id="shotFallback" style="display: none;">
+              <strong>Screenshot Placeholder</strong>
+              <p>Place your image as <code>screenshot.png</code> next to <code>index.html</code>.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Setup / Quick Start -->
+      <section class="card setup-section" id="setup" aria-labelledby="setupH">
+        <h2 id="setupH">Set up &amp; run</h2>
+        <p>Clone the repository on your host computer (requires Node.js), install dependencies, and start the server:</p>
+        <ol class="steps">
+          <li>Clone the repo and open the project folder.</li>
+          <li>Install packages with <code>npm install</code> and start with <code>node server.js</code>.</li>
+          <li>Open the printed local URL (e.g. <code>http://192.168.x.x:3000</code>) on any device on the same Wi-Fi.</li>
+        </ol>
+        <div class="code-box">
+          <pre id="cmd">git clone https://github.com/yasin786-my/ShaLo.git
+cd ShaLo
+npm install
+node server.js</pre>
+          <button class="copy-btn" type="button" onclick="copyCmd()">Copy</button>
+        </div>
+      </section>
+
+      <!-- Phone to Phone -->
+      <section class="phone-section" aria-labelledby="phoneH">
+        <h2 id="phoneH">Phone to phone</h2>
+        <div class="phone-grid">
+          <div class="phone-card">
+            <h3>With a laptop</h3>
+            <p>Run the server on the computer, then open its address on both phones.</p>
+          </div>
+          <div class="phone-card">
+            <h3>Without a laptop (Android)</h3>
+            <p>One Android can host with Termux:</p>
+            <ul>
+              <li><code>pkg install nodejs</code></li>
+              <li><code>cd ShaLo &amp;&amp; npm install</code></li>
+              <li><code>node server.js</code></li>
+            </ul>
+            <p style="margin-top:10px">Keep Termux open. iPhones can send &amp; receive but can’t host.</p>
+          </div>
+          <div class="phone-card">
+            <h3>No Wi-Fi</h3>
+            <p>Turn on the host phone’s hotspot and join it from the other phone.</p>
+          </div>
+          <div class="phone-card">
+            <h3>Command line</h3>
+            <p>No browser? Use curl:</p>
+            <ul>
+              <li><code>curl -F "files=@photo.jpg" http://…/upload</code></li>
+              <li><code>curl http://…/api/files</code></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security Note -->
+      <section class="security" aria-label="Security note">
+        <div class="security-box">
+          <h3>Security note</h3>
+          <p>
+            ShaLo has no password. Anyone on the same network can send and download files.
+            Use it on networks you trust, not public Wi-Fi. Files stay in the
+            <code>shared/</code> folder on the host until you delete them.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- CREATOR TAB -->
+    <div id="panel-creator" role="tabpanel" aria-labelledby="tab-creator" hidden>
+      <section class="creator-grid">
+        <article class="card">
+          <span class="pill">Creator</span>
+          <div class="profile-row">
+            <img class="profile-pic" src="profile.png" alt="Mohamed Yasin" width="120" height="120" onerror="this.style.display='none'">
+            <div>
+              <h2>Mohamed Yasin</h2>
+              <p style="font-weight:600;margin:0">Full-stack · Python · AI</p>
+            </div>
+          </div>
+          <p>
+            Full-stack developer, Python developer, and AI builder focused on practical web apps, Flask services, autonomous agents, and local utilities.
+          </p>
+          <p>
+            Started with C and C++ fundamentals and builds responsive systems end-to-end.
+          </p>
+          <div class="cta-row">
+            <a class="btn pink" href="https://github.com/yasin786-my" target="_blank" rel="noopener">GitHub Profile</a>
+            <a class="btn" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">ShaLo on GitHub</a>
+          </div>
+        </article>
+
+        <aside class="card">
+          <span class="pill sun">Highlights</span>
+          <h3>Core Stack</h3>
+          <ul class="skill-list">
+            <li>Full-Stack Web Applications</li>
+            <li>Python &amp; Flask Services</li>
+            <li>AI Systems &amp; Autonomous Agents</li>
+            <li>C / C++ Foundations</li>
+          </ul>
+        </aside>
+      </section>
+    </div>
+
+    <footer>
+      <span><strong>ShaLo</strong> · by Mohamed Yasin</span>
+      <div class="footer-links">
+        <a href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/yasin786-my" target="_blank" rel="noopener">GitHub Profile</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function openTab(name) {
+      const isCreator = name === "creator";
+      document.getElementById("tab-project").setAttribute("aria-selected", String(!isCreator));
+      document.getElementById("tab-creator").setAttribute("aria-selected", String(isCreator));
+      document.getElementById("panel-project").hidden = isCreator;
+      document.getElementById("panel-creator").hidden = !isCreator;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.getElementById("tab-project").addEventListener("click", () => openTab("project"));
+    document.getElementById("tab-creator").addEventListener("click", () => openTab("creator"));
+
+    function copyCmd() {
+      const text = document.getElementById("cmd").innerText;
+      navigator.clipboard?.writeText(text).then(() => {
+        const btn = document.querySelector(".copy-btn");
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = "Copy", 1500);
+      });
+    }
+  </script>
+</body>
+</html>
