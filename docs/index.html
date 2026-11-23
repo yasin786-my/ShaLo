@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ShaLo — Send files both ways on your Wi-Fi</title>
   <meta name="description" content="ShaLo lets you send files both ways between any devices on your local Wi-Fi.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A4%3C/text%3E%3C/svg%3E">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A4%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --sun: #FFE45E;
@@ -20,8 +23,15 @@
       --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
-    * { box-sizing: border-box; }
-    html { background: var(--sun); scroll-behavior: smooth; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--sun);
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -31,7 +41,10 @@
       padding: clamp(16px, 4vw, 40px);
     }
 
-    .wrap { max-width: 1080px; margin: 0 auto; }
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
 
     :focus-visible {
       outline: 3px solid var(--ink);
@@ -57,8 +70,14 @@
       paint-order: stroke fill;
       text-shadow: 4px 4px 0 var(--ink);
     }
-    h1 .sha { color: var(--pink); }
-    h1 .lo { color: var(--blue); }
+
+    h1 .sha {
+      color: var(--pink);
+    }
+
+    h1 .lo {
+      color: var(--blue);
+    }
 
     .tag {
       margin: 10px 0 0;
@@ -93,11 +112,24 @@
       box-shadow: 4px 4px 0 var(--ink);
       transition: transform .12s, box-shadow .12s, background .12s;
     }
-    .tab-btn:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
-    .tab-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
-    .tab-btn[aria-selected="true"] { background: var(--pink); }
 
-    [hidden] { display: none !important; }
+    .tab-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    .tab-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    .tab-btn[aria-selected="true"] {
+      background: var(--pink);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
 
     /* Buttons */
     .btn {
@@ -115,16 +147,30 @@
       box-shadow: 4px 4px 0 var(--blue);
       transition: transform .12s, box-shadow .12s;
     }
-    .btn:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--blue); }
-    .btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--blue); }
+
+    .btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 6px 6px 0 var(--blue);
+    }
+
+    .btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0 var(--blue);
+    }
 
     .btn.pink {
       background: var(--pink);
       color: var(--ink);
       box-shadow: 4px 4px 0 var(--ink);
     }
-    .btn.pink:hover { box-shadow: 6px 6px 0 var(--ink); }
-    .btn.pink:active { box-shadow: 1px 1px 0 var(--ink); }
+
+    .btn.pink:hover {
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    .btn.pink:active {
+      box-shadow: 1px 1px 0 var(--ink);
+    }
 
     .btn.white {
       background: var(--white);
@@ -133,8 +179,14 @@
       padding: 8px 16px;
       font-size: .92rem;
     }
-    .btn.white:hover { box-shadow: 5px 5px 0 var(--ink); }
-    .btn.white:active { box-shadow: 1px 1px 0 var(--ink); }
+
+    .btn.white:hover {
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+
+    .btn.white:active {
+      box-shadow: 1px 1px 0 var(--ink);
+    }
 
     /* Cards & Typography */
     .card {
@@ -155,8 +207,13 @@
       font: 400 1.25rem/1.15 var(--display);
     }
 
-    p { margin: 0; }
-    p + p { margin-top: 10px; }
+    p {
+      margin: 0;
+    }
+
+    p+p {
+      margin-top: 10px;
+    }
 
     code {
       background: var(--sun);
@@ -174,6 +231,7 @@
       gap: clamp(20px, 3vw, 30px);
       margin-bottom: clamp(24px, 4vw, 36px);
     }
+
     @media (min-width: 880px) {
       .hero-grid {
         grid-template-columns: 5fr 6fr;
@@ -205,10 +263,23 @@
     }
 
     @keyframes hop {
-      0%, 100% { transform: translate(0, 0); }
-      35% { transform: translate(46px, -24px); }
-      65% { transform: translate(92px, 0); }
-      80% { transform: translate(92px, -6px); }
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      35% {
+        transform: translate(46px, -24px);
+      }
+
+      65% {
+        transform: translate(92px, 0);
+      }
+
+      80% {
+        transform: translate(92px, -6px);
+      }
     }
 
     .cta-row {
@@ -218,7 +289,10 @@
       margin-top: 18px;
     }
 
-    .shot-card { display: flex; flex-direction: column; }
+    .shot-card {
+      display: flex;
+      flex-direction: column;
+    }
 
     .browser-bar {
       display: flex;
@@ -236,9 +310,18 @@
       border: 2.5px solid var(--ink);
       display: inline-block;
     }
-    .dot.r { background: var(--pink); }
-    .dot.y { background: var(--sun); }
-    .dot.b { background: var(--blue); }
+
+    .dot.r {
+      background: var(--pink);
+    }
+
+    .dot.y {
+      background: var(--sun);
+    }
+
+    .dot.b {
+      background: var(--blue);
+    }
 
     .url-pill {
       margin-left: 6px;
@@ -250,39 +333,85 @@
       font-weight: 700;
     }
 
-    .shot-frame {
+    .shot-stage {
       flex: 1;
-      min-height: 250px;
+      display: grid;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .shot-slot {
+      position: relative;
       border: 3px solid var(--ink);
       border-radius: 18px;
       overflow: hidden;
       background: var(--sun);
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      min-height: 210px;
     }
 
-    .shot-frame img {
+    .shot-slot img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
+    .shot-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--white);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: .78rem;
+      font-weight: 700;
+      z-index: 2;
+    }
+
     .shot-placeholder {
-      padding: 24px;
+      padding: 20px;
       text-align: center;
       border: 3px dashed var(--ink);
       border-radius: 14px;
-      margin: 14px;
+      margin: 12px;
       background: var(--white);
-      width: calc(100% - 28px);
     }
 
     .shot-placeholder strong {
       display: block;
-      font: 400 1.35rem var(--display);
-      margin-bottom: 6px;
+      font: 400 1.2rem var(--display);
+      margin-bottom: 4px;
+    }
+
+    @media (min-width: 768px) {
+      .shot-stage.has-both {
+        grid-template-columns: 1.65fr .85fr;
+      }
+
+      .shot-slot.phone-slot img {
+        object-fit: contain;
+        background: var(--sun);
+      }
+    }
+
+    @media (max-width: 767px) {
+      .shot-slot.pc-slot {
+        display: none !important;
+      }
+
+      .shot-slot.phone-slot {
+        min-height: 280px;
+      }
+
+      .shot-slot.phone-slot img {
+        max-height: 460px;
+        object-fit: contain;
+        background: var(--sun);
+      }
     }
 
     /* Setup / Quick Start */
@@ -290,8 +419,36 @@
       margin-bottom: clamp(24px, 4vw, 36px);
     }
 
+    .setup-mode-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0 12px;
+    }
+
+    .mode-btn {
+      font: 700 .9rem var(--body);
+      color: var(--ink);
+      background: var(--white);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 6px 16px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--ink);
+      transition: transform .12s, box-shadow .12s, background .12s;
+    }
+
+    .mode-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .mode-btn[aria-selected="true"] {
+      background: var(--sun);
+    }
+
     .steps {
-      margin: 12px 0 16px;
+      margin: 10px 0 16px;
       padding-left: 20px;
       display: grid;
       gap: 6px;
@@ -328,10 +485,15 @@
       padding: 6px 14px;
       cursor: pointer;
     }
-    .copy-btn:hover { background: var(--pink); }
+
+    .copy-btn:hover {
+      background: var(--pink);
+    }
 
     /* Phone to Phone */
-    .phone-section { margin-bottom: clamp(24px, 4vw, 36px); }
+    .phone-section {
+      margin-bottom: clamp(24px, 4vw, 36px);
+    }
 
     .phone-grid {
       display: grid;
@@ -355,7 +517,9 @@
     }
 
     /* Security */
-    .security { margin-bottom: clamp(24px, 4vw, 36px); }
+    .security {
+      margin-bottom: clamp(24px, 4vw, 36px);
+    }
 
     .security-box {
       background: var(--white);
@@ -372,6 +536,7 @@
       gap: clamp(20px, 3vw, 28px);
       margin-bottom: clamp(24px, 4vw, 36px);
     }
+
     @media (min-width: 820px) {
       .creator-grid {
         grid-template-columns: 7fr 5fr;
@@ -390,7 +555,11 @@
       font-size: .86rem;
       margin-bottom: 10px;
     }
-    .pill.sun { background: var(--sun); color: var(--ink); }
+
+    .pill.sun {
+      background: var(--sun);
+      color: var(--ink);
+    }
 
     .profile-pic {
       width: 120px;
@@ -403,16 +572,29 @@
       margin-bottom: 16px;
       background: var(--sun);
     }
+
     .profile-row {
       display: flex;
       align-items: flex-start;
       gap: 18px;
       margin-bottom: 8px;
     }
-    .profile-row h2 { margin: 0 0 4px; }
+
+    .profile-row h2 {
+      margin: 0 0 4px;
+    }
+
     @media (max-width: 520px) {
-      .profile-row { flex-direction: column; align-items: center; text-align: center; }
-      .profile-pic { margin-left: auto; margin-right: auto; }
+      .profile-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .profile-pic {
+        margin-left: auto;
+        margin-right: auto;
+      }
     }
 
     .skill-list {
@@ -440,13 +622,21 @@
       text-decoration-thickness: 2.5px;
     }
 
-    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition: none !important; }
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <header>
@@ -461,8 +651,10 @@
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Page tabs">
-      <button class="tab-btn" id="tab-project" role="tab" aria-selected="true" aria-controls="panel-project">Project</button>
-      <button class="tab-btn" id="tab-creator" role="tab" aria-selected="false" aria-controls="panel-creator">Creator</button>
+      <button class="tab-btn" id="tab-project" role="tab" aria-selected="true"
+        aria-controls="panel-project">Project</button>
+      <button class="tab-btn" id="tab-creator" role="tab" aria-selected="false"
+        aria-controls="panel-creator">Creator</button>
     </nav>
 
     <!-- PROJECT TAB -->
@@ -471,23 +663,30 @@
         <section class="card intro-card" aria-labelledby="heroH">
           <div>
             <h2 id="heroH">Local Wi-Fi file sharing</h2>
-            <svg class="devices" viewBox="0 0 320 142" role="img" aria-label="This device sharing with other devices in both directions">
-              <rect x="14" y="14" width="50" height="92" rx="12" fill="#FF3D8B" stroke="#1B1240" stroke-width="3"/>
-              <rect x="23" y="26" width="32" height="56" rx="5" fill="#fff" stroke="#1B1240" stroke-width="2"/>
-              <rect x="224" y="26" width="84" height="58" rx="8" fill="#2D5BFF" stroke="#1B1240" stroke-width="3"/>
-              <rect x="233" y="35" width="66" height="40" rx="4" fill="#fff" stroke="#1B1240" stroke-width="2"/>
-              <rect x="210" y="88" width="112" height="12" rx="6" fill="#1B1240"/>
-              <path d="M84 60H204" stroke="#1B1240" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" fill="none"/>
-              <path d="M86 50L76 60l10 10M202 50l10 10-10 10" stroke="#1B1240" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle class="packet" cx="104" cy="60" r="9"/>
-              <text x="39" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">This device</text>
-              <text x="266" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">Other devices</text>
+            <svg class="devices" viewBox="0 0 320 142" role="img"
+              aria-label="This device sharing with other devices in both directions">
+              <rect x="14" y="14" width="50" height="92" rx="12" fill="#FF3D8B" stroke="#1B1240" stroke-width="3" />
+              <rect x="23" y="26" width="32" height="56" rx="5" fill="#fff" stroke="#1B1240" stroke-width="2" />
+              <rect x="224" y="26" width="84" height="58" rx="8" fill="#2D5BFF" stroke="#1B1240" stroke-width="3" />
+              <rect x="233" y="35" width="66" height="40" rx="4" fill="#fff" stroke="#1B1240" stroke-width="2" />
+              <rect x="210" y="88" width="112" height="12" rx="6" fill="#1B1240" />
+              <path d="M84 60H204" stroke="#1B1240" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"
+                fill="none" />
+              <path d="M86 50L76 60l10 10M202 50l10 10-10 10" stroke="#1B1240" stroke-width="4" stroke-linecap="round"
+                stroke-linejoin="round" fill="none" />
+              <circle class="packet" cx="104" cy="60" r="9" />
+              <text x="39" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13"
+                font-weight="700" fill="#1B1240">This device</text>
+              <text x="266" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13"
+                font-weight="700" fill="#1B1240">Other devices</text>
             </svg>
-            <p>Run ShaLo on a host device and open the local link in any browser on the same Wi-Fi to upload and download files two ways.</p>
+            <p>Run ShaLo on a host device and open the local link in any browser on the same Wi-Fi to upload and
+              download files two ways.</p>
           </div>
           <div class="cta-row">
             <a class="btn pink" href="#setup">Run Locally</a>
-            <a class="btn white" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">Source Code</a>
+            <a class="btn white" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">Source
+              Code</a>
           </div>
         </section>
 
@@ -498,35 +697,72 @@
             <span class="dot b"></span>
             <span class="url-pill" id="previewH">App Preview</span>
           </div>
-          <div class="shot-frame">
-            <img
-              src="screenshot.png"
-              alt="ShaLo app screenshot"
-              onerror="this.style.display='none'; document.getElementById('shotFallback').style.display='block';"
-            >
-            <div class="shot-placeholder" id="shotFallback" style="display: none;">
-              <strong>Screenshot Placeholder</strong>
-              <p>Place your image as <code>screenshot.png</code> next to <code>index.html</code>.</p>
+          <div class="shot-stage" id="shotStage">
+            <div class="shot-slot pc-slot" id="pcSlot">
+              <span class="shot-label">PC</span>
+              <img id="pcImg" src="screenshot.png" alt="ShaLo desktop app screenshot" onload="syncShotLayout()"
+                onerror="this.style.display='none'; document.getElementById('pcFallback').style.display='block'; syncShotLayout();">
+              <div class="shot-placeholder" id="pcFallback" style="display: none;">
+                <strong>PC Screenshot</strong>
+                <p>Save desktop view as <code>screenshot.png</code>.</p>
+              </div>
+            </div>
+
+            <div class="shot-slot phone-slot" id="phoneSlot">
+              <span class="shot-label">Phone</span>
+              <img id="phoneImg" src="screenshot-phone.png" alt="ShaLo phone app screenshot"
+                onload="this.dataset.loaded='1'; syncShotLayout();"
+                onerror="this.style.display='none'; document.getElementById('phoneFallback').style.display='block'; syncShotLayout();">
+              <div class="shot-placeholder" id="phoneFallback" style="display: none;">
+                <strong>Phone Screenshot</strong>
+                <p>Save phone view as <code>screenshot-phone.png</code>.</p>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      <!-- Setup / Quick Start -->
+      <!-- Setup / Quick Start (2 Methods) -->
       <section class="card setup-section" id="setup" aria-labelledby="setupH">
         <h2 id="setupH">Set up &amp; run</h2>
-        <p>Clone the repository on your host computer (requires Node.js), install dependencies, and start the server:</p>
-        <ol class="steps">
-          <li>Clone the repo and open the project folder.</li>
-          <li>Install packages with <code>npm install</code> and start with <code>node server.js</code>.</li>
-          <li>Open the printed local URL (e.g. <code>http://192.168.x.x:3000</code>) on any device on the same Wi-Fi.</li>
-        </ol>
-        <div class="code-box">
-          <pre id="cmd">git clone https://github.com/yasin786-my/ShaLo.git
+        <p>Requires Node.js on your host device. Pick either method below:</p>
+
+        <div class="setup-mode-bar" role="tablist" aria-label="Setup method">
+          <button class="mode-btn" id="mode-git" role="tab" aria-selected="true" aria-controls="setup-git">1. With
+            Git</button>
+          <button class="mode-btn" id="mode-zip" role="tab" aria-selected="false" aria-controls="setup-zip">2. Download
+            ZIP</button>
+        </div>
+
+        <div id="setup-git" role="tabpanel" aria-labelledby="mode-git">
+          <ol class="steps">
+            <li>Clone the repository and enter the folder.</li>
+            <li>Install dependencies with <code>npm install</code> and start with <code>node server.js</code>.</li>
+            <li>Open the printed local URL on any device on the same Wi-Fi.</li>
+          </ol>
+          <div class="code-box">
+            <pre id="cmd-git">git clone https://github.com/yasin786-my/ShaLo.git
 cd ShaLo
 npm install
 node server.js</pre>
-          <button class="copy-btn" type="button" onclick="copyCmd()">Copy</button>
+            <button class="copy-btn" type="button" onclick="copySetupCmd('cmd-git', this)">Copy</button>
+          </div>
+        </div>
+
+        <div id="setup-zip" role="tabpanel" aria-labelledby="mode-zip" hidden>
+          <ol class="steps">
+            <li>Download the ZIP (<a href="https://github.com/yasin786-my/ShaLo/archive/refs/heads/main.zip"
+                target="_blank" rel="noopener">click here</a>) and extract it.</li>
+            <li>Open a terminal inside the extracted folder, run <code>npm install</code>, then start with
+              <code>node server.js</code>.</li>
+            <li>Open the printed local URL on any device on the same Wi-Fi.</li>
+          </ol>
+          <div class="code-box">
+            <pre id="cmd-zip">cd ShaLo-main
+npm install
+node server.js</pre>
+            <button class="copy-btn" type="button" onclick="copySetupCmd('cmd-zip', this)">Copy</button>
+          </div>
         </div>
       </section>
 
@@ -582,21 +818,24 @@ node server.js</pre>
         <article class="card">
           <span class="pill">Creator</span>
           <div class="profile-row">
-            <img class="profile-pic" src="profile.png" alt="Mohamed Yasin" width="120" height="120" onerror="this.style.display='none'">
+            <img class="profile-pic" src="profile.png" alt="Mohamed Yasin" width="120" height="120"
+              onerror="this.style.display='none'">
             <div>
               <h2>Mohamed Yasin</h2>
               <p style="font-weight:600;margin:0">Full-stack · Python · AI</p>
             </div>
           </div>
           <p>
-            Full-stack developer, Python developer, and AI builder focused on practical web apps, Flask services, autonomous agents, and local utilities.
+            Full-stack developer, Python developer, and AI builder focused on practical web apps, Flask services,
+            autonomous agents, and local utilities.
           </p>
           <p>
             Started with C and C++ fundamentals and builds responsive systems end-to-end.
           </p>
           <div class="cta-row">
             <a class="btn pink" href="https://github.com/yasin786-my" target="_blank" rel="noopener">GitHub Profile</a>
-            <a class="btn" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">ShaLo on GitHub</a>
+            <a class="btn" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">ShaLo on
+              GitHub</a>
           </div>
         </article>
 
@@ -635,14 +874,34 @@ node server.js</pre>
     document.getElementById("tab-project").addEventListener("click", () => openTab("project"));
     document.getElementById("tab-creator").addEventListener("click", () => openTab("creator"));
 
-    function copyCmd() {
-      const text = document.getElementById("cmd").innerText;
+    function setSetupMode(mode) {
+      const isGit = mode === "git";
+      document.getElementById("mode-git").setAttribute("aria-selected", String(isGit));
+      document.getElementById("mode-zip").setAttribute("aria-selected", String(!isGit));
+      document.getElementById("setup-git").hidden = !isGit;
+      document.getElementById("setup-zip").hidden = isGit;
+    }
+
+    document.getElementById("mode-git").addEventListener("click", () => setSetupMode("git"));
+    document.getElementById("mode-zip").addEventListener("click", () => setSetupMode("zip"));
+
+    function syncShotLayout() {
+      const stage = document.getElementById("shotStage");
+      const phoneImg = document.getElementById("phoneImg");
+      const hasPhoneImg = phoneImg && phoneImg.dataset.loaded === "1";
+      stage.classList.toggle("has-both", hasPhoneImg);
+    }
+
+    window.addEventListener("resize", syncShotLayout);
+
+    function copySetupCmd(id, btn) {
+      const text = document.getElementById(id).innerText;
       navigator.clipboard?.writeText(text).then(() => {
-        const btn = document.querySelector(".copy-btn");
         btn.textContent = "Copied!";
         setTimeout(() => btn.textContent = "Copy", 1500);
       });
     }
   </script>
 </body>
+
 </html>
