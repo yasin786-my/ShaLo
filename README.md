@@ -2,15 +2,15 @@
 
 Share files between any devices on the same Wi-Fi. No accounts, no cloud, no internet needed.
 
-One device runs the ShaLo server. Every other device opens its address in a browser, sends files, and downloads what others have shared.
+One device runs the ShaLo server. Other devices join it with a one-time code, then send files and download what others have shared.
 
 ## Features
 
 - Works in any modern browser: iPhone, iPad, Android, Windows, Mac, Linux, Chromebook
-- Two-way sharing: any device can send and receive
+- Two-way sharing: any joined device can send and receive
+- Join by scanning a QR code or by typing a 6-digit code
 - Drag and drop on desktop, file picker on phones
 - Multiple files at once, with a progress bar for each
-- Scan a QR code to join, or type the address by hand: both are in the Add a device window
 - Shows which device sent each file
 - The shared folder updates on every device within a few seconds
 - Files up to 2 GB each
@@ -24,20 +24,23 @@ npm install
 node server.js
 ```
 
-The server prints the addresses other devices can use:
+1. On the device running ShaLo, open `http://localhost:3000`.
+2. Tap **Add a device**. A QR code and a 6-digit code appear.
+3. On the other device, scan the QR code with the camera. Or open the address shown in the window and type the 6-digit code.
 
-```
-ShaLo is running. Open it from any device on this network:
-  http://192.168.1.23:3000
-```
+All devices must be on the same Wi-Fi.
 
-Open the address on each device. All devices must be on the same Wi-Fi.
+## How joining works
 
-Once ShaLo is open, the **Add a device** button (top right on desktop, under the title on phones) opens a window with a large QR code and the address in big type, so anyone can scan it or type it. If the host has more than one network (for example Wi-Fi and a hotspot), pick the one the other device is on.
+- The code is made when **Add a device** opens and deleted when the window closes.
+- A code works **once** and expires after **2 minutes**. When someone joins, a fresh code appears right away for the next device.
+- A joined device stays signed in for 12 hours. **Sign out all devices** in the same window removes everyone at once.
+- Only the device running ShaLo can make codes. Joined devices can send and receive but cannot add others.
+- Joining is limited to 8 tries per minute from one device, so codes can't be guessed.
 
 ## Phone to phone
 
-- **With a laptop or PC:** run the server on it, then open its address on both phones.
+- **With a laptop or PC:** run the server on it, then join from both phones.
 - **Without a laptop:** one Android phone can host using [Termux](https://termux.dev):
   ```
   pkg install nodejs
@@ -45,26 +48,15 @@ Once ShaLo is open, the **Add a device** button (top right on desktop, under the
   npm install
   node server.js
   ```
-  Keep Termux open so Android doesn't stop the server. iPhones can send and receive but can't host.
+  Open `http://localhost:3000` in the browser on that same phone to make codes. Keep Termux open so Android doesn't stop the server. iPhones can join but can't host.
 - **No Wi-Fi:** turn on the host phone's hotspot and join it from the other phone.
-
-## Command line
-
-Devices without a browser can use `curl`:
-
-```bash
-# Send a file
-curl -F "files=@photo.jpg" http://192.168.1.23:3000/upload
-
-# List shared files
-curl http://192.168.1.23:3000/api/files
-```
 
 ## Project structure
 
 ```
-server.js          Express server: upload, download and file list
+server.js          Express server: join codes, upload, download, file list
 public/index.html  The ShaLo interface (single file, no build step)
+public/join.html   The page other devices see until they join
 public/qr.js       QR code generator, no dependencies
 shared/            Files people send (created on first run)
 meta.json          Which device sent each file (created on first upload)
@@ -72,30 +64,41 @@ meta.json          Which device sent each file (created on first upload)
 
 ## API
 
+Everything except joining needs a joined device (or the host).
+
 | Method | Path | What it does |
 | --- | --- | --- |
-| GET | `/` | The ShaLo interface |
+| GET | `/` | The interface, or the code page if not joined |
+| GET | `/join?code=123456` | Joins with a code (what the QR code opens) |
+| POST | `/api/join` | Joins with a code (`{"code": "123456"}`) |
 | GET | `/api/files` | Lists shared files, newest first |
-| GET | `/api/info` | Lists the addresses other devices can use |
 | POST | `/upload` | Sends one or more files (form field `files`) |
 | GET | `/files/<id>` | Downloads a file under its original name |
+| GET, DELETE | `/api/invite` | Host only: current join code, or delete it |
+| POST | `/api/revoke` | Host only: sign out all devices |
 
-`/upload` also reads the optional headers `X-Device-Id` and `X-Device-Name` to label the sender.
+## Security
+
+What ShaLo protects:
+- Nobody can list, upload or download without a one-time code or a session from one.
+- Other websites can't send files to ShaLo through your browser.
+- Downloads always save as files and never open inside the browser.
+- Filenames are cleaned, and the page is served with strict security headers.
+
+What it does not protect:
+- Traffic is plain `http://`, like most local tools. Someone who has joined your Wi-Fi could in theory read it, so use a home network with a WPA2 or WPA3 password and don't use ShaLo on public Wi-Fi.
+- Files stay in `shared/` on the host until you delete them, and anyone who has joined can download them.
+- Anyone with access to the host device itself can open ShaLo without a code.
 
 ## Troubleshooting
 
 - **Other devices can't connect:** allow port 3000 through the host's firewall. Windows and macOS usually ask the first time.
 - **Still can't connect:** some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.
-- **QR code opens the wrong page or nothing:** the code holds the address of the network you picked in **Add a device**. Pick the one the scanning device is connected to.
-- **Copy does nothing on a phone:** phones block the clipboard on plain `http://` pages in some browsers. Select the address and copy it by hand.
-- **Fonts look plain:** the page loads fonts from Google Fonts and falls back to system fonts when there's no internet. Everything else still works.
+- **"Code expired":** codes last 2 minutes and work once. Tap **Add a device** again for a fresh one.
+- **Code opens the wrong page:** if the host has more than one network, pick the one the other device is on in the Add a device window.
+- **Copy does nothing on a phone:** some phone browsers block the clipboard on plain `http://` pages. Select the address and copy it by hand.
+- **Fonts look plain:** the pages load fonts from Google Fonts and fall back to system fonts with no internet. Everything else still works.
 
-## Security
+## Changing the port or limits
 
-ShaLo has no password. Anyone on the same network can send and download files. Use it on networks you trust, not on public Wi-Fi.
-
-Files stay in the `shared/` folder on the host device until you delete them.
-
-## Changing the port or size limit
-
-Edit `PORT` and `fileSize` at the top of `server.js`.
+Edit `PORT`, `INVITE_MS`, `SESSION_MS` and `fileSize` at the top of `server.js`.

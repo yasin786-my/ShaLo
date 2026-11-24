@@ -76,6 +76,10 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
 .qr svg{width:100%;height:auto;display:block}
 .jtext p{margin:6px 0 14px}
 #addrText{display:block;background:var(--sun);border:3px solid var(--ink);border-radius:16px;padding:8px 14px;font:700 1.35rem/1.25 var(--body);user-select:all;word-break:break-all;margin-bottom:14px}
+[hidden]{display:none!important}
+.pin{font:400 2.5rem/1 var(--display);letter-spacing:.12em;margin:0 0 6px}
+.jtext .jmsg{min-height:1.5em;margin:0 0 14px;font-weight:600}
+.link{background:none;border:0;padding:0;margin-top:16px;font:600 .9rem var(--body);color:var(--ink);text-decoration:underline;cursor:pointer}
 .jbtns{display:flex;gap:12px;flex-wrap:wrap}
 .btn.sm.ghost{background:var(--white);color:var(--ink)}
 .nets{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
@@ -132,10 +136,13 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
     <div class="qr" id="qr"></div>
     <div class="jtext">
       <h2 id="joinH">Add a device</h2>
-      <p>Scan the code with a phone camera, or type this address into any browser on the same Wi-Fi.</p>
+      <p>Scan the code with a phone camera. Or open this address on the other device and type the 6-digit code.</p>
       <code id="addrText"></code>
-      <div class="jbtns"><button class="btn sm" id="copy" type="button">Copy</button><button class="btn sm ghost" id="close" type="button">Done</button></div>
+      <div class="pin" id="pin" aria-label="Join code"></div>
+      <p class="jmsg" id="jmsg" role="status"></p>
+      <div class="jbtns"><button class="btn sm" id="copy" type="button">Copy address</button><button class="btn sm ghost" id="close" type="button">Done</button></div>
       <div class="nets" id="nets" role="group" aria-label="Choose a network address"></div>
+      <button class="link" id="revoke" type="button">Sign out all devices</button>
     </div>
   </div>
 </dialog>
@@ -157,7 +164,9 @@ function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.
 
 async function refresh() {
   try {
-    const files = await (await fetch("/api/files")).json();
+    const res = await fetch("/api/files");
+    if (res.status === 401) return location.reload();
+    const files = await res.json();
     const next = files.map(f => f.id + f.size).join("|");
     $("#count").textContent = files.length ? files.length + (files.length === 1 ? " file" : " files") + " shared" : "";
     if (next !== sig) {
@@ -194,7 +203,7 @@ function send(file) {
   x.onload = () => {
     end();
     if (x.status === 200) { fill.style.width = "100%"; q.classList.add("done"); st.textContent = "Sent · " + size(file.size); refresh(); setTimeout(() => q.remove(), 4000); }
-    else { let msg = "Upload failed. Try again."; try { msg = JSON.parse(x.responseText).error; } catch {} q.classList.add("fail"); st.textContent = msg; }
+    else { if (x.status === 401) setTimeout(() => location.reload(), 1500); let msg = "Upload failed. Try again."; try { msg = JSON.parse(x.responseText).error; } catch {} q.classList.add("fail"); st.textContent = msg; }
   };
   x.onerror = () => { end(); q.classList.add("fail"); st.textContent = "Lost the connection to ShaLo. Try again."; };
   x.send(fd);
@@ -208,7 +217,7 @@ $("#pick").addEventListener("keydown", e => { if (e.key === "Enter" || e.key ===
 drop.addEventListener("drop", e => sendAll(e.dataTransfer.files));
 ["dragover","drop"].forEach(t => window.addEventListener(t, e => e.preventDefault()));
 
-let urls = [], pick = 0;
+let urls = [], pick = 0, inv = null, note = "", poll = 0, tick = 0;
 function copyText(t) {
   if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
   const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0";
@@ -217,14 +226,17 @@ function copyText(t) {
 }
 function renderJoin() {
   const nets = $("#nets"); nets.replaceChildren();
-  if (!urls.length) {
-    $("#qr").replaceChildren(); $("#copy").hidden = true;
+  if (!urls.length || !inv) {
+    $("#qr").replaceChildren(); $("#pin").textContent = ""; $("#copy").hidden = true;
     $("#addrText").textContent = "No Wi-Fi address found";
     return;
   }
-  const u = urls[pick];
-  $("#qr").innerHTML = QR.svg(u, "QR code for " + u);
-  $("#addrText").textContent = u.replace("http://", "");
+  if (pick >= urls.length) pick = 0;
+  const base = urls[pick];
+  // The code is part of the QR; it works once and expires in 2 minutes
+  $("#qr").innerHTML = QR.svg(base + "/join?code=" + inv.code, "QR code for joining ShaLo");
+  $("#addrText").textContent = base.replace("http://", "");
+  $("#pin").textContent = inv.code.slice(0, 3) + " " + inv.code.slice(3);
   $("#copy").hidden = false;
   if (urls.length > 1) urls.forEach((x, i) => {
     const b = el("button", "net", x.replace("http://", "")); b.type = "button"; b.setAttribute("aria-pressed", i === pick);
@@ -232,21 +244,49 @@ function renderJoin() {
     nets.append(b);
   });
 }
+function status() {
+  if (!inv) return;
+  const s = Math.max(0, Math.round((inv.expiresAt - Date.now()) / 1000));
+  $("#jmsg").textContent = note || "Works once. Expires in " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+function say(t) { note = t; status(); setTimeout(() => { note = ""; status(); }, 4000); }
+async function loadInvite() {
+  const r = await fetch("/api/invite");
+  if (!r.ok) throw new Error("no invite");
+  const d = await r.json();
+  urls = d.urls || [];
+  if (inv && d.joined > inv.joined) say("A device just joined. Here's a fresh code.");
+  const changed = !inv || inv.code !== d.code;
+  inv = { code: d.code, joined: d.joined, expiresAt: Date.now() + d.ttl * 1000 };
+  if (changed) renderJoin();
+  status();
+}
 $("#copy").addEventListener("click", () => {
-  const b = $("#copy"); copyText(urls[pick]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500); });
+  const b = $("#copy"); copyText(urls[pick]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy address", 1500); });
+});
+$("#revoke").addEventListener("click", async () => {
+  try { await fetch("/api/revoke", { method: "POST" }); say("All other devices were signed out."); } catch {}
 });
 const dlg = $("#join");
-// The QR is built fresh each time the window opens and wiped when it closes
+// A fresh code is made when the window opens and deleted when it closes
 $("#open").addEventListener("click", async () => {
   if (dlg.open) return;
-  try { urls = (await (await fetch("/api/info")).json()).urls || []; } catch { urls = []; }
-  pick = 0; renderJoin(); dlg.showModal();
+  inv = null; pick = 0; note = "";
+  try { await loadInvite(); } catch { urls = []; }
+  renderJoin(); status(); dlg.showModal();
+  poll = setInterval(() => loadInvite().catch(() => {}), 2000);
+  tick = setInterval(status, 1000);
 });
 dlg.addEventListener("close", () => {
-  $("#qr").replaceChildren(); $("#nets").replaceChildren(); $("#addrText").textContent = "";
+  clearInterval(poll); clearInterval(tick); inv = null; note = "";
+  fetch("/api/invite", { method: "DELETE" }).catch(() => {});
+  ["#qr", "#nets"].forEach(s => $(s).replaceChildren());
+  ["#addrText", "#pin", "#jmsg"].forEach(s => $(s).textContent = "");
 });
 $("#close").addEventListener("click", () => dlg.close());
 dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+// Only the device running ShaLo can add devices
+fetch("/api/me").then(r => r.status === 401 ? location.reload() : r.json()).then(d => { if (d && !d.host) $("#open").hidden = true; }).catch(() => {});
 
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 4000);
