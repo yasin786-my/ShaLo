@@ -46,7 +46,7 @@
       align-items: flex-end;
       justify-content: space-between;
       gap: 16px 24px;
-      margin-bottom: clamp(18px, 3vw, 28px);
+      margin-bottom: clamp(16px, 2.5vw, 24px);
     }
 
     h1 {
@@ -64,7 +64,7 @@
       margin: 10px 0 0;
       font-weight: 600;
       font-size: 1.12rem;
-      max-width: 38ch;
+      max-width: 44ch;
     }
 
     .nav-actions {
@@ -74,28 +74,84 @@
       align-items: center;
     }
 
-    /* Tabs */
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: clamp(20px, 3.5vw, 32px);
-    }
-
-    .tab-btn {
-      font: 700 .98rem var(--body);
-      color: var(--ink);
+    /* Responsive Navbar */
+    .navbar {
       background: var(--white);
       border: 3px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 5px 5px 0 var(--ink);
+      padding: 10px 14px;
+      margin-bottom: clamp(20px, 3.5vw, 32px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
+    }
+
+    .nav-brand {
+      font: 400 1.15rem/1 var(--display);
+      color: var(--ink);
+      padding: 4px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      font: 700 .95rem var(--body);
+      color: var(--ink);
+      background: var(--white);
+      border: 2.5px solid var(--ink);
       border-radius: 999px;
-      padding: 9px 20px;
+      padding: 7px 16px;
       cursor: pointer;
-      box-shadow: 4px 4px 0 var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
       transition: transform .12s, box-shadow .12s, background .12s;
     }
-    .tab-btn:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
-    .tab-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
-    .tab-btn[aria-selected="true"] { background: var(--pink); }
+    .nav-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+    .nav-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+    .nav-btn[aria-selected="true"] { background: var(--pink); }
+
+    .menu-toggle {
+      display: none;
+      font: 700 .95rem var(--body);
+      color: var(--ink);
+      background: var(--sun);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 7px 14px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    @media (max-width: 767px) {
+      .menu-toggle { display: inline-flex; align-items: center; gap: 6px; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border: 3px solid var(--ink);
+        border-radius: 20px;
+        box-shadow: 5px 5px 0 var(--ink);
+        padding: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        z-index: 20;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links .nav-btn { width: 100%; text-align: center; }
+    }
 
     [hidden] { display: none !important; }
 
@@ -151,12 +207,14 @@
     }
 
     h3 {
-      margin: 0 0 6px;
+      margin: 0 0 8px;
       font: 400 1.25rem/1.15 var(--display);
     }
 
     p { margin: 0; }
     p + p { margin-top: 10px; }
+
+    a { color: var(--ink); font-weight: 700; }
 
     code {
       background: var(--sun);
@@ -366,7 +424,7 @@
       border-radius: 18px;
       padding: 16px 20px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: .95rem;
+      font-size: .92rem;
       overflow-x: auto;
       display: flex;
       align-items: flex-start;
@@ -425,6 +483,55 @@
       border-radius: 24px;
       box-shadow: 6px 6px 0 var(--ink);
       padding: clamp(20px, 3vw, 26px);
+    }
+
+    /* Docs Section */
+    .docs-stack {
+      display: grid;
+      gap: clamp(18px, 3vw, 26px);
+      margin-bottom: clamp(24px, 4vw, 36px);
+    }
+
+    .docs-grid-2 {
+      display: grid;
+      gap: clamp(18px, 3vw, 24px);
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    }
+
+    .doc-list {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      display: grid;
+      gap: 7px;
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 12px;
+      border: 3px solid var(--ink);
+      border-radius: 16px;
+      background: var(--white);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: .95rem;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--ink);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    th {
+      background: var(--sun);
+      font-weight: 700;
     }
 
     /* Creator Tab */
@@ -495,12 +602,6 @@
       padding-top: 6px;
     }
 
-    footer a {
-      color: var(--ink);
-      text-decoration: underline;
-      text-decoration-thickness: 2.5px;
-    }
-
     .footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
 
     @media (prefers-reduced-motion: reduce) {
@@ -513,17 +614,22 @@
     <header>
       <div>
         <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
-        <p class="tag">Send files both ways between any devices on this Wi-Fi.</p>
+        <p class="tag">Share files between any devices on the same Wi-Fi. No accounts, no cloud, no internet needed.</p>
       </div>
       <div class="nav-actions">
-        <a class="btn white" href="#setup">Setup</a>
+        <button class="btn white" type="button" onclick="openSection('docs')">Docs</button>
         <a class="btn" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">GitHub Repo</a>
       </div>
     </header>
 
-    <nav class="tabs" role="tablist" aria-label="Page tabs">
-      <button class="tab-btn" id="tab-project" role="tab" aria-selected="true" aria-controls="panel-project">Project</button>
-      <button class="tab-btn" id="tab-creator" role="tab" aria-selected="false" aria-controls="panel-creator">Creator</button>
+    <nav class="navbar" aria-label="Primary navigation">
+      <span class="nav-brand"><span style="color:var(--pink)">Sha</span><span style="color:var(--blue)">Lo</span></span>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
+      <div class="nav-links" id="navLinks" role="tablist">
+        <button class="nav-btn" id="tab-project" role="tab" aria-selected="true" aria-controls="panel-project">Project</button>
+        <button class="nav-btn" id="tab-docs" role="tab" aria-selected="false" aria-controls="panel-docs">Docs</button>
+        <button class="nav-btn" id="tab-creator" role="tab" aria-selected="false" aria-controls="panel-creator">Creator</button>
+      </div>
     </nav>
 
     <!-- PROJECT TAB -->
@@ -544,11 +650,11 @@
               <text x="39" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">This device</text>
               <text x="266" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">Other devices</text>
             </svg>
-            <p>Run ShaLo on a host device and open the local link in any browser on the same Wi-Fi to upload and download files two ways.</p>
+            <p>One device runs the ShaLo server. Other devices join with a one-time code, then send files and download what others have shared.</p>
           </div>
           <div class="cta-row">
             <a class="btn pink" href="#setup">Run Locally</a>
-            <a class="btn white" href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">Source Code</a>
+            <button class="btn white" type="button" onclick="openSection('docs')">Full Docs</button>
           </div>
         </section>
 
@@ -592,7 +698,7 @@
       <!-- Setup / Quick Start (2 Methods) -->
       <section class="card setup-section" id="setup" aria-labelledby="setupH">
         <h2 id="setupH">Set up &amp; run</h2>
-        <p>Requires Node.js on your host device. Pick either method below:</p>
+        <p>Requires <a href="https://nodejs.org" target="_blank" rel="noopener">Node.js</a> 18 or newer on your host device. Pick either method below:</p>
 
         <div class="setup-mode-bar" role="tablist" aria-label="Setup method">
           <button class="mode-btn" id="mode-git" role="tab" aria-selected="true" aria-controls="setup-git">1. With Git</button>
@@ -603,7 +709,7 @@
           <ol class="steps">
             <li>Clone the repository and enter the folder.</li>
             <li>Install dependencies with <code>npm install</code> and start with <code>node server.js</code>.</li>
-            <li>Open the printed local URL on any device on the same Wi-Fi.</li>
+            <li>Open <code>http://localhost:3000</code> on the host, tap <strong>Add a device</strong>, and scan or enter the 6-digit code on other devices on the same Wi-Fi.</li>
           </ol>
           <div class="code-box">
             <pre id="cmd-git">git clone https://github.com/yasin786-my/ShaLo.git
@@ -618,7 +724,7 @@ node server.js</pre>
           <ol class="steps">
             <li>Download the ZIP (<a href="https://github.com/yasin786-my/ShaLo/archive/refs/heads/main.zip" target="_blank" rel="noopener">click here</a>) and extract it.</li>
             <li>Open a terminal inside the extracted folder, run <code>npm install</code>, then start with <code>node server.js</code>.</li>
-            <li>Open the printed local URL on any device on the same Wi-Fi.</li>
+            <li>Open <code>http://localhost:3000</code> on the host, tap <strong>Add a device</strong>, and join from other devices on the same Wi-Fi.</li>
           </ol>
           <div class="code-box">
             <pre id="cmd-zip">cd ShaLo-main
@@ -634,30 +740,22 @@ node server.js</pre>
         <h2 id="phoneH">Phone to phone</h2>
         <div class="phone-grid">
           <div class="phone-card">
-            <h3>With a laptop</h3>
-            <p>Run the server on the computer, then open its address on both phones.</p>
+            <h3>With a laptop or PC</h3>
+            <p>Run the server on the computer, then join from both phones.</p>
           </div>
           <div class="phone-card">
             <h3>Without a laptop (Android)</h3>
-            <p>One Android can host with Termux:</p>
+            <p>One Android phone can host using <a href="https://termux.dev" target="_blank" rel="noopener">Termux</a>:</p>
             <ul>
               <li><code>pkg install nodejs</code></li>
-              <li><code>cd ShaLo &amp;&amp; npm install</code></li>
+              <li><code>cd shalo &amp;&amp; npm install</code></li>
               <li><code>node server.js</code></li>
             </ul>
-            <p style="margin-top:10px">Keep Termux open. iPhones can send &amp; receive but can’t host.</p>
+            <p style="margin-top:10px">Open <code>http://localhost:3000</code> on that phone to make codes. Keep Termux open. iPhones can join but can’t host.</p>
           </div>
           <div class="phone-card">
             <h3>No Wi-Fi</h3>
             <p>Turn on the host phone’s hotspot and join it from the other phone.</p>
-          </div>
-          <div class="phone-card">
-            <h3>Command line</h3>
-            <p>No browser? Use curl:</p>
-            <ul>
-              <li><code>curl -F "files=@photo.jpg" http://…/upload</code></li>
-              <li><code>curl http://…/api/files</code></li>
-            </ul>
           </div>
         </div>
       </section>
@@ -667,12 +765,156 @@ node server.js</pre>
         <div class="security-box">
           <h3>Security note</h3>
           <p>
-            ShaLo has no password. Anyone on the same network can send and download files.
-            Use it on networks you trust, not public Wi-Fi. Files stay in the
-            <code>shared/</code> folder on the host until you delete them.
+            ShaLo uses one-time join codes and plain <code>http://</code> on your local network.
+            Use a home network with WPA2 or WPA3, not public Wi-Fi. Files stay in <code>shared/</code>
+            on the host until you delete them.
           </p>
         </div>
       </section>
+    </div>
+
+    <!-- DOCS TAB -->
+    <div id="panel-docs" role="tabpanel" aria-labelledby="tab-docs" hidden>
+      <div class="docs-stack">
+        <section class="card" aria-labelledby="featuresH">
+          <h2 id="featuresH">Features</h2>
+          <ul class="doc-list">
+            <li>Works in any modern browser: iPhone, iPad, Android, Windows, Mac, Linux, Chromebook</li>
+            <li>Two-way sharing: any joined device can send and receive</li>
+            <li>Join by scanning a QR code or by typing a 6-digit code</li>
+            <li>Open photos, videos, audio, PDFs and text files right in the browser, with previous and next buttons</li>
+            <li>Drag and drop on desktop, file picker on phones</li>
+            <li>Multiple files at once, with a progress bar for each</li>
+            <li>Shows which device sent each file</li>
+            <li>The shared folder updates on every device within a few seconds</li>
+            <li>Files up to 2 GB each</li>
+          </ul>
+        </section>
+
+        <div class="docs-grid-2">
+          <section class="card" aria-labelledby="joiningH">
+            <h2 id="joiningH">How joining works</h2>
+            <ul class="doc-list">
+              <li>The code is made when <strong>Add a device</strong> opens and deleted when the window closes.</li>
+              <li>A code works <strong>once</strong> and expires after <strong>2 minutes</strong>. When someone joins, a fresh code appears right away for the next device.</li>
+              <li>A joined device stays signed in for 12 hours. <strong>Sign out all devices</strong> in the same window removes everyone at once.</li>
+              <li>Only the device running ShaLo can make codes. Joined devices can send and receive but cannot add others.</li>
+              <li>Joining is limited to 8 tries per minute from one device, so codes can't be guessed.</li>
+            </ul>
+          </section>
+
+          <section class="card" aria-labelledby="structureH">
+            <h2 id="structureH">Project structure &amp; limits</h2>
+            <div class="code-box" style="margin-top:10px">
+              <pre>server.js          Express server: join codes, upload, download, file list
+public/index.html  The ShaLo interface (single file, no build step)
+public/join.html   The page other devices see until they join
+public/qr.js       QR code generator, no dependencies
+shared/            Files people send (created on first run)
+meta.json          Which device sent each file (created on first upload)</pre>
+            </div>
+            <p style="margin-top:14px">
+              <strong>Changing the port or limits:</strong> Edit <code>PORT</code>, <code>INVITE_MS</code>, <code>SESSION_MS</code> and <code>fileSize</code> at the top of <code>server.js</code>.
+            </p>
+          </section>
+        </div>
+
+        <section class="card" aria-labelledby="apiH">
+          <h2 id="apiH">API</h2>
+          <p>Everything except joining needs a joined device (or the host).</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Path</th>
+                  <th>What it does</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/</code></td>
+                  <td>The interface, or the code page if not joined</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/join?code=123456</code></td>
+                  <td>Joins with a code (what the QR code opens)</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/api/join</code></td>
+                  <td>Joins with a code (<code>{"code": "123456"}</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/api/files</code></td>
+                  <td>Lists shared files, newest first</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/upload</code></td>
+                  <td>Sends one or more files (form field <code>files</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/files/&lt;id&gt;</code></td>
+                  <td>Downloads a file under its original name</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/view/&lt;id&gt;</code></td>
+                  <td>Opens a safe file type in the browser (photos, video, audio, PDF, text)</td>
+                </tr>
+                <tr>
+                  <td><code>GET, DELETE</code></td>
+                  <td><code>/api/invite</code></td>
+                  <td>Host only: current join code, or delete it</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/api/revoke</code></td>
+                  <td>Host only: sign out all devices</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="docs-grid-2">
+          <section class="card" aria-labelledby="secDocsH">
+            <h2 id="secDocsH">Security</h2>
+            <h3>What ShaLo protects</h3>
+            <ul class="doc-list">
+              <li>Nobody can list, upload or download without a one-time code or a session from one.</li>
+              <li>Other websites can't send files to ShaLo through your browser.</li>
+              <li>Only photos, video, audio, PDF and plain text can open in the browser, and they are sandboxed. Anything else (HTML, SVG, scripts) can only be downloaded, so a shared file can never run code in the page.</li>
+              <li>Filenames are cleaned, and the page is served with strict security headers.</li>
+            </ul>
+            <h3 style="margin-top:16px">What it does not protect</h3>
+            <ul class="doc-list">
+              <li>Traffic is plain <code>http://</code>, like most local tools. Someone who has joined your Wi-Fi could in theory read it, so use a home network with a WPA2 or WPA3 password and don't use ShaLo on public Wi-Fi.</li>
+              <li>Files stay in <code>shared/</code> on the host until you delete them, and anyone who has joined can download them.</li>
+              <li>Anyone with access to the host device itself can open ShaLo without a code.</li>
+            </ul>
+          </section>
+
+          <section class="card" aria-labelledby="troubleH">
+            <h2 id="troubleH">Troubleshooting</h2>
+            <ul class="doc-list">
+              <li><strong>Other devices can't connect:</strong> allow port 3000 through the host's firewall. Windows and macOS usually ask the first time.</li>
+              <li><strong>Still can't connect:</strong> some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.</li>
+              <li><strong>"Code expired":</strong> codes last 2 minutes and work once. Tap <strong>Add a device</strong> again for a fresh one.</li>
+              <li><strong>Code opens the wrong page:</strong> if the host has more than one network, pick the one the other device is on in the Add a device window.</li>
+              <li><strong>No Open button on a file:</strong> only photos, videos, audio, PDFs and text files can open in the browser. Use Download for the rest. iPhone HEIC photos need Download too, because most browsers can't show them.</li>
+              <li><strong>PDF looks cut off on a phone:</strong> some phone browsers show only the first page inside the viewer. Tap <strong>New tab</strong> to open the whole PDF.</li>
+              <li><strong>Copy does nothing on a phone:</strong> some phone browsers block the clipboard on plain <code>http://</code> pages. Select the address and copy it by hand.</li>
+              <li><strong>Fonts look plain:</strong> the pages load fonts from Google Fonts and fall back to system fonts with no internet. Everything else still works.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>
 
     <!-- CREATOR TAB -->
@@ -715,6 +957,7 @@ node server.js</pre>
     <footer>
       <span><strong>ShaLo</strong> · by Mohamed Yasin</span>
       <div class="footer-links">
+        <button type="button" style="background:none;border:0;padding:0;font:inherit;text-decoration:underline;text-decoration-thickness:2.5px;cursor:pointer;" onclick="openSection('docs')">Docs</button>
         <a href="https://github.com/yasin786-my/ShaLo" target="_blank" rel="noopener">GitHub</a>
         <a href="https://github.com/yasin786-my" target="_blank" rel="noopener">GitHub Profile</a>
       </div>
@@ -722,17 +965,33 @@ node server.js</pre>
   </div>
 
   <script>
-    function openTab(name) {
-      const isCreator = name === "creator";
-      document.getElementById("tab-project").setAttribute("aria-selected", String(!isCreator));
-      document.getElementById("tab-creator").setAttribute("aria-selected", String(isCreator));
-      document.getElementById("panel-project").hidden = isCreator;
-      document.getElementById("panel-creator").hidden = !isCreator;
+    const menuToggle = document.getElementById("menuToggle");
+    const navLinks = document.getElementById("navLinks");
+
+    menuToggle.addEventListener("click", () => {
+      const expanded = menuToggle.getAttribute("aria-expanded") === "true";
+      menuToggle.setAttribute("aria-expanded", String(!expanded));
+      navLinks.classList.toggle("open", !expanded);
+    });
+
+    function openSection(name) {
+      const valid = ["project", "docs", "creator"];
+      const target = valid.includes(name) ? name : "project";
+
+      for (const tab of valid) {
+        const active = tab === target;
+        document.getElementById(`tab-${tab}`).setAttribute("aria-selected", String(active));
+        document.getElementById(`panel-${tab}`).hidden = !active;
+      }
+
+      menuToggle.setAttribute("aria-expanded", "false");
+      navLinks.classList.remove("open");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    document.getElementById("tab-project").addEventListener("click", () => openTab("project"));
-    document.getElementById("tab-creator").addEventListener("click", () => openTab("creator"));
+    document.getElementById("tab-project").addEventListener("click", () => openSection("project"));
+    document.getElementById("tab-docs").addEventListener("click", () => openSection("docs"));
+    document.getElementById("tab-creator").addEventListener("click", () => openSection("creator"));
 
     function setSetupMode(mode) {
       const isGit = mode === "git";
