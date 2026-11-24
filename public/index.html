@@ -88,7 +88,15 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
 .net[aria-pressed=true]{background:var(--ink);color:var(--white)}
 .empty{border:3px dashed var(--ink);border-radius:18px;padding:22px;font-weight:600}
 .empty strong{display:block;font:400 1.25rem var(--display);margin-bottom:4px}
-@media(max-width:480px){.f{flex-wrap:wrap}.f .btn{width:100%;text-align:center}}
+.acts{display:flex;gap:8px;flex:none}
+.viewer{width:min(1000px,calc(100vw - 24px))}
+.vbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 16px;border-bottom:3px solid var(--ink)}
+.vbar b{flex:1;min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vbody{display:grid;place-items:center;background:var(--ink);min-height:40vh;max-height:calc(100vh - 150px);overflow:auto}
+.vbody img,.vbody video{max-width:100%;max-height:calc(100vh - 160px);object-fit:contain;display:block}
+.vbody audio{width:min(480px,90%);margin:40px 0}
+.vbody iframe{width:100%;height:calc(100vh - 160px);border:0;background:var(--white)}
+@media(max-width:480px){.f{flex-wrap:wrap}.acts{width:100%}.acts .btn{flex:1;text-align:center}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -131,6 +139,20 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
   </div>
 </div>
 
+<dialog id="view" class="viewer" aria-labelledby="viewT">
+  <div class="vbar">
+    <b id="viewT"></b>
+    <div class="acts">
+      <button class="btn sm ghost" id="vprev" type="button" aria-label="Previous file">&lsaquo;</button>
+      <button class="btn sm ghost" id="vnext" type="button" aria-label="Next file">&rsaquo;</button>
+      <a class="btn sm ghost" id="vnew" target="_blank" rel="noopener">New tab</a>
+      <a class="btn sm" id="vdl">Download</a>
+      <button class="btn sm ghost" id="vclose" type="button">Close</button>
+    </div>
+  </div>
+  <div class="vbody" id="vbody"></div>
+</dialog>
+
 <dialog id="join" aria-labelledby="joinH">
   <div class="jwrap">
     <div class="qr" id="qr"></div>
@@ -162,11 +184,45 @@ const kind = e => /^(jpe?g|png|gif|webp|heic|svg)$/.test(e) ? "img" : /^(mp4|mov
 
 function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
 
+// What can open in the browser (the server only allows these same types)
+const VIEW = { image: /\.(png|jpe?g|gif|webp|avif|bmp)$/i, video: /\.(mp4|m4v|webm|mov)$/i, audio: /\.(mp3|wav|m4a|ogg)$/i, pdf: /\.pdf$/i, text: /\.(txt|md|csv|json|log)$/i };
+const viewKind = n => Object.keys(VIEW).find(k => VIEW[k].test(n)) || "";
+let lastFiles = [], viewId = "";
+const viewer = $("#view");
+const viewables = () => lastFiles.filter(f => viewKind(f.name));
+function openViewer(id) {
+  const list = viewables(), f = list.find(x => x.id === id) || list[0];
+  if (!f) return;
+  viewId = f.id;
+  const src = "/view/" + encodeURIComponent(f.id), k = viewKind(f.name);
+  let n;
+  if (k === "image") { n = el("img"); n.alt = f.name; }
+  else if (k === "video" || k === "audio") { n = el(k); n.controls = true; n.playsInline = true; }
+  else { n = el("iframe"); n.title = f.name; }
+  n.src = src;
+  $("#vbody").replaceChildren(n);
+  $("#viewT").textContent = f.name;
+  $("#vnew").href = src; $("#vdl").href = f.url;
+  $("#vprev").hidden = $("#vnext").hidden = list.length < 2;
+  if (!viewer.open) viewer.showModal();
+}
+function step(d) {
+  const list = viewables(); if (list.length < 2) return;
+  const i = list.findIndex(x => x.id === viewId);
+  openViewer(list[(i + d + list.length) % list.length].id);
+}
+$("#vprev").addEventListener("click", () => step(-1));
+$("#vnext").addEventListener("click", () => step(1));
+$("#vclose").addEventListener("click", () => viewer.close());
+viewer.addEventListener("click", e => { if (e.target === viewer) viewer.close(); });
+viewer.addEventListener("keydown", e => { if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
+viewer.addEventListener("close", () => $("#vbody").replaceChildren());   // also stops video and audio
+
 async function refresh() {
   try {
     const res = await fetch("/api/files");
     if (res.status === 401) return location.reload();
-    const files = await res.json();
+    const files = await res.json(); lastFiles = files;
     const next = files.map(f => f.id + f.size).join("|");
     $("#count").textContent = files.length ? files.length + (files.length === 1 ? " file" : " files") + " shared" : "";
     if (next !== sig) {
@@ -177,13 +233,18 @@ async function refresh() {
       }
       files.forEach(f => {
         const ext = (f.name.split(".").pop() || "").toLowerCase().slice(0, 4);
-        const li = el("li", "f"), m = el("div", "meta"), when = el("small", "when", ""), a = el("a", "btn sm", "Download");
+        const li = el("li", "f"), m = el("div", "meta"), when = el("small", "when", ""), a = el("a", "btn sm", "Download"), acts = el("div", "acts");
         when.dataset.t = f.modified;
         when.dataset.s = size(f.size) + " · " + (f.from ? (f.from.id === me ? "from you" : "from " + f.from.name) : "added on the host device");
         when.textContent = when.dataset.s + " · " + ago(f.modified);
         m.append(el("b", "", f.name), when);
         a.href = f.url; a.addEventListener("click", () => { drop.classList.add("receiving"); setTimeout(() => drop.classList.remove("receiving"), 1100); }); a.setAttribute("aria-label", "Download " + f.name);
-        li.append(el("span", "ext " + kind(ext), f.name.includes(".") ? "." + ext : "file"), m, a);
+        if (viewKind(f.name)) {
+          const o = el("button", "btn sm ghost", "Open"); o.type = "button"; o.setAttribute("aria-label", "Open " + f.name);
+          o.addEventListener("click", () => openViewer(f.id)); acts.append(o);
+        }
+        acts.append(a);
+        li.append(el("span", "ext " + kind(ext), f.name.includes(".") ? "." + ext : "file"), m, acts);
         list.append(li);
       });
     } else {

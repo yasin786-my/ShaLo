@@ -9,6 +9,7 @@ One device runs the ShaLo server. Other devices join it with a one-time code, th
 - Works in any modern browser: iPhone, iPad, Android, Windows, Mac, Linux, Chromebook
 - Two-way sharing: any joined device can send and receive
 - Join by scanning a QR code or by typing a 6-digit code
+- Open photos, videos, audio, PDFs and text files right in the browser, with previous and next buttons
 - Drag and drop on desktop, file picker on phones
 - Multiple files at once, with a progress bar for each
 - Shows which device sent each file
@@ -74,6 +75,7 @@ Everything except joining needs a joined device (or the host).
 | GET | `/api/files` | Lists shared files, newest first |
 | POST | `/upload` | Sends one or more files (form field `files`) |
 | GET | `/files/<id>` | Downloads a file under its original name |
+| GET | `/view/<id>` | Opens a safe file type in the browser (photos, video, audio, PDF, text) |
 | GET, DELETE | `/api/invite` | Host only: current join code, or delete it |
 | POST | `/api/revoke` | Host only: sign out all devices |
 
@@ -82,7 +84,7 @@ Everything except joining needs a joined device (or the host).
 What ShaLo protects:
 - Nobody can list, upload or download without a one-time code or a session from one.
 - Other websites can't send files to ShaLo through your browser.
-- Downloads always save as files and never open inside the browser.
+- Only photos, video, audio, PDF and plain text can open in the browser, and they are sandboxed. Anything else (HTML, SVG, scripts) can only be downloaded, so a shared file can never run code in the page.
 - Filenames are cleaned, and the page is served with strict security headers.
 
 What it does not protect:
@@ -96,6 +98,8 @@ What it does not protect:
 - **Still can't connect:** some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.
 - **"Code expired":** codes last 2 minutes and work once. Tap **Add a device** again for a fresh one.
 - **Code opens the wrong page:** if the host has more than one network, pick the one the other device is on in the Add a device window.
+- **No Open button on a file:** only photos, videos, audio, PDFs and text files can open in the browser. Use Download for the rest. iPhone HEIC photos need Download too, because most browsers can't show them.
+- **PDF looks cut off on a phone:** some phone browsers show only the first page inside the viewer. Tap **New tab** to open the whole PDF.
 - **Copy does nothing on a phone:** some phone browsers block the clipboard on plain `http://` pages. Select the address and copy it by hand.
 - **Fonts look plain:** the pages load fonts from Google Fonts and fall back to system fonts with no internet. Everything else still works.
 
