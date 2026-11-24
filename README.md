@@ -10,6 +10,7 @@ One device runs the ShaLo server. Every other device opens its address in a brow
 - Two-way sharing: any device can send and receive
 - Drag and drop on desktop, file picker on phones
 - Multiple files at once, with a progress bar for each
+- Scan a QR code to join, or type the address by hand: both are in the Add a device window
 - Shows which device sent each file
 - The shared folder updates on every device within a few seconds
 - Files up to 2 GB each
@@ -30,7 +31,9 @@ ShaLo is running. Open it from any device on this network:
   http://192.168.1.23:3000
 ```
 
-Open that address on each device. All devices must be on the same Wi-Fi.
+Open the address on each device. All devices must be on the same Wi-Fi.
+
+Once ShaLo is open, the **Add a device** button (top right on desktop, under the title on phones) opens a window with a large QR code and the address in big type, so anyone can scan it or type it. If the host has more than one network (for example Wi-Fi and a hotspot), pick the one the other device is on.
 
 ## Phone to phone
 
@@ -62,6 +65,7 @@ curl http://192.168.1.23:3000/api/files
 ```
 server.js          Express server: upload, download and file list
 public/index.html  The ShaLo interface (single file, no build step)
+public/qr.js       QR code generator, no dependencies
 shared/            Files people send (created on first run)
 meta.json          Which device sent each file (created on first upload)
 ```
@@ -82,6 +86,8 @@ meta.json          Which device sent each file (created on first upload)
 
 - **Other devices can't connect:** allow port 3000 through the host's firewall. Windows and macOS usually ask the first time.
 - **Still can't connect:** some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.
+- **QR code opens the wrong page or nothing:** the code holds the address of the network you picked in **Add a device**. Pick the one the scanning device is connected to.
+- **Copy does nothing on a phone:** phones block the clipboard on plain `http://` pages in some browsers. Select the address and copy it by hand.
 - **Fonts look plain:** the page loads fonts from Google Fonts and falls back to system fonts when there's no internet. Everything else still works.
 
 ## Security

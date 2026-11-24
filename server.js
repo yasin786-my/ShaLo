@@ -90,8 +90,9 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-    console.log(`ShaLo is running. Open it from any device on this network:`);
-    Object.values(os.networkInterfaces()).flat()
+    const urls = Object.values(os.networkInterfaces()).flat()
         .filter(i => i && i.family === "IPv4" && !i.internal)
-        .forEach(i => console.log(`  http://${i.address}:${PORT}`));
+        .map(i => `http://${i.address}:${PORT}`);
+    console.log("ShaLo is running. Open it from any device on this network:");
+    urls.forEach(u => console.log("  " + u));
 });
