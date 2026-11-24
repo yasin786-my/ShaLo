@@ -24,9 +24,6 @@ header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-be
 h1{margin:0;font:400 clamp(3.5rem,13vw,6.25rem)/.9 var(--display);letter-spacing:-.01em;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink)}
 h1 .sha{color:var(--pink)} h1 .lo{color:var(--blue)}
 .tag{margin:8px 0 0;font-weight:600;max-width:32ch}
-.addr{font:700 .95rem var(--body);background:var(--white);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:8px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);display:none}
-.addr.on{display:inline-block}
-.addr:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 
 .grid{display:grid;gap:clamp(18px,3vw,32px)}
 @media(min-width:880px){.grid{grid-template-columns:5fr 6fr;align-items:start}}
@@ -69,6 +66,22 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .meta{flex:1;min-width:0}
 .meta b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta small{font-weight:600}
+.joinbtn{background:var(--pink);box-shadow:3px 3px 0 var(--ink)}
+dialog{border:3px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:0;background:var(--white);color:var(--ink);width:min(700px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
+dialog::backdrop{background:rgba(27,18,64,.6)}
+.jwrap{display:grid;gap:22px;align-items:center;padding:clamp(18px,3vw,30px)}
+@media(min-width:620px){.jwrap{grid-template-columns:260px 1fr}}
+.qr{width:min(260px,72vw);margin:0 auto;border:3px solid var(--ink);border-radius:20px;overflow:hidden;background:var(--white);line-height:0}
+.qr:empty{display:none}
+.qr svg{width:100%;height:auto;display:block}
+.jtext p{margin:6px 0 14px}
+#addrText{display:block;background:var(--sun);border:3px solid var(--ink);border-radius:16px;padding:8px 14px;font:700 1.35rem/1.25 var(--body);user-select:all;word-break:break-all;margin-bottom:14px}
+.jbtns{display:flex;gap:12px;flex-wrap:wrap}
+.btn.sm.ghost{background:var(--white);color:var(--ink)}
+.nets{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.nets:empty{display:none}
+.net{font:600 .9rem var(--body);color:var(--ink);background:var(--white);border:3px solid var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}
+.net[aria-pressed=true]{background:var(--ink);color:var(--white)}
 .empty{border:3px dashed var(--ink);border-radius:18px;padding:22px;font-weight:600}
 .empty strong{display:block;font:400 1.25rem var(--display);margin-bottom:4px}
 @media(max-width:480px){.f{flex-wrap:wrap}.f .btn{width:100%;text-align:center}}
@@ -82,7 +95,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
       <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
       <p class="tag">Send files both ways between any devices on this Wi-Fi.</p>
     </div>
-    <button class="addr" id="addr" type="button" title="Copy this address to share it"></button>
+    <button class="btn sm joinbtn" id="open" type="button">Add a device</button>
   </header>
 
   <div class="grid">
@@ -105,14 +118,29 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
       <ul class="queue" id="queue" aria-live="polite"></ul>
     </section>
 
-    <section class="card" aria-labelledby="listH">
+    <section class="card folder" aria-labelledby="listH">
       <h2 id="listH">Shared folder</h2>
       <p class="count" id="count">Checking the shared folder…</p>
       <ul class="files" id="files"></ul>
     </section>
+
   </div>
 </div>
 
+<dialog id="join" aria-labelledby="joinH">
+  <div class="jwrap">
+    <div class="qr" id="qr"></div>
+    <div class="jtext">
+      <h2 id="joinH">Add a device</h2>
+      <p>Scan the code with a phone camera, or type this address into any browser on the same Wi-Fi.</p>
+      <code id="addrText"></code>
+      <div class="jbtns"><button class="btn sm" id="copy" type="button">Copy</button><button class="btn sm ghost" id="close" type="button">Done</button></div>
+      <div class="nets" id="nets" role="group" aria-label="Choose a network address"></div>
+    </div>
+  </div>
+</dialog>
+
+<script src="/qr.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 // This device's identity, so every file shows who sent it
@@ -180,11 +208,45 @@ $("#pick").addEventListener("keydown", e => { if (e.key === "Enter" || e.key ===
 drop.addEventListener("drop", e => sendAll(e.dataTransfer.files));
 ["dragover","drop"].forEach(t => window.addEventListener(t, e => e.preventDefault()));
 
-fetch("/api/info").then(r => r.json()).then(({ urls }) => {
-  if (!urls.length) return;
-  const b = $("#addr"); b.textContent = "Join from another device: " + urls[0].replace("http://", ""); b.classList.add("on");
-  b.onclick = () => navigator.clipboard && navigator.clipboard.writeText(urls[0]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Join from another device: " + urls[0].replace("http://", ""), 1500); });
-}).catch(() => {});
+let urls = [], pick = 0;
+function copyText(t) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+  const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0";
+  document.body.append(a); a.select(); try { document.execCommand("copy"); } catch {} a.remove();
+  return Promise.resolve();
+}
+function renderJoin() {
+  const nets = $("#nets"); nets.replaceChildren();
+  if (!urls.length) {
+    $("#qr").replaceChildren(); $("#copy").hidden = true;
+    $("#addrText").textContent = "No Wi-Fi address found";
+    return;
+  }
+  const u = urls[pick];
+  $("#qr").innerHTML = QR.svg(u, "QR code for " + u);
+  $("#addrText").textContent = u.replace("http://", "");
+  $("#copy").hidden = false;
+  if (urls.length > 1) urls.forEach((x, i) => {
+    const b = el("button", "net", x.replace("http://", "")); b.type = "button"; b.setAttribute("aria-pressed", i === pick);
+    b.onclick = () => { pick = i; renderJoin(); };
+    nets.append(b);
+  });
+}
+$("#copy").addEventListener("click", () => {
+  const b = $("#copy"); copyText(urls[pick]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500); });
+});
+const dlg = $("#join");
+// The QR is built fresh each time the window opens and wiped when it closes
+$("#open").addEventListener("click", async () => {
+  if (dlg.open) return;
+  try { urls = (await (await fetch("/api/info")).json()).urls || []; } catch { urls = []; }
+  pick = 0; renderJoin(); dlg.showModal();
+});
+dlg.addEventListener("close", () => {
+  $("#qr").replaceChildren(); $("#nets").replaceChildren(); $("#addrText").textContent = "";
+});
+$("#close").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
 
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 4000);
