@@ -2,7 +2,7 @@ name: Build ShaLo APK
 
 on:
   push:
-    branches: [main, master]
+    branches: [android]
   workflow_dispatch:        # lets you press "Run workflow" by hand
 
 jobs:
