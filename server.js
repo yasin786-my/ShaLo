@@ -55,8 +55,15 @@ const authed = req => {
     sessions.delete(t);
     return false;
 };
-const requireAuth = (req, res, next) =>
-    authed(req) ? next() : res.status(401).json({ error: "Join ShaLo with a code first." });
+// Browsers opening a link get the code page; apps and scripts get a JSON error
+const requireAuth = (req, res, next) => {
+    if (authed(req)) return next();
+    if ((req.headers.accept || "").includes("text/html")) {
+        res.set("Cache-Control", "no-store");
+        return res.status(401).sendFile(path.join(__dirname, "public", "join.html"));
+    }
+    res.status(401).json({ error: "Join ShaLo with a code first." });
+};
 const requireHost = (req, res, next) =>
     isHost(req) ? next() : res.status(403).json({ error: "Only the device running ShaLo can do this." });
 // Blocks other websites from sending requests to ShaLo through your browser

@@ -96,6 +96,7 @@ What it does not protect:
 
 - **Other devices can't connect:** allow port 3000 through the host's firewall. Windows and macOS usually ask the first time.
 - **Still can't connect:** some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.
+- **A file link asks for a code:** that is the protection working. Enter the 6-digit code and you land on the file. Apps and scripts that call ShaLo without joining get a JSON error instead.
 - **"Code expired":** codes last 2 minutes and work once. Tap **Add a device** again for a fresh one.
 - **Code opens the wrong page:** if the host has more than one network, pick the one the other device is on in the Add a device window.
 - **No Open button on a file:** only photos, videos, audio, PDFs and text files can open in the browser. Use Download for the rest. iPhone HEIC photos need Download too, because most browsers can't show them.
