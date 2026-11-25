@@ -1,109 +1,103 @@
-# ShaLo
+# ShaLo for Android
 
-Share files between any devices on the same Wi-Fi. No accounts, no cloud, no internet needed.
+Share files between devices on the same Wi-Fi. No accounts, no cloud, no internet needed.
 
-One device runs the ShaLo server. Other devices join it with a one-time code, then send files and download what others have shared.
+**One Android phone runs ShaLo and hosts the server. Everyone else joins from a normal web browser. Nothing to install for them.**
 
-## Features
+## How to use it
 
-- Works in any modern browser: iPhone, iPad, Android, Windows, Mac, Linux, Chromebook
-- Two-way sharing: any joined device can send and receive
-- Join by scanning a QR code or by typing a 6-digit code
-- Open photos, videos, audio, PDFs and text files right in the browser, with previous and next buttons
-- Drag and drop on desktop, file picker on phones
-- Multiple files at once, with a progress bar for each
-- Shows which device sent each file
-- The shared folder updates on every device within a few seconds
-- Files up to 2 GB each
+### Phone A: the host (has the app)
+1. Install the APK (see [Install the APK](#install-the-apk)).
+2. Open ShaLo, allow notifications, tap **Start sharing**.
+3. In the ShaLo screen tap **Add a device**. A QR code and a 6-digit code appear.
 
-## Quick start
+### Everyone else: phones, laptops, iPhones (no app)
+1. Connect to the same Wi-Fi as Phone A, or to Phone A's hotspot.
+2. Scan the QR code with the camera, or open the address shown (like `http://192.168.1.50:3000`) in Chrome or Safari and type the 6-digit code.
+3. Send and download files in the browser.
 
-Requires [Node.js](https://nodejs.org) 18 or newer.
+Only one phone hosts at a time. If two phones have the app, one taps Start and the other joins in its browser.
+
+### Good to know
+- A code works **once** and lasts **2 minutes**. Tap **Add a device** for a fresh one.
+- A joined device stays signed in for 12 hours. **Sign out all devices** is in the Add a device window.
+- Files up to **2 GB** each. Photos, video, audio and text open in the browser.
+- **⚙ Server** (bottom left) or the Android back button returns to the Start/Stop screen. **Stop** is also in the notification.
+- No Wi-Fi? Turn on the host's hotspot and join it.
+
+## Install the APK
+1. Copy `app-debug.apk` to the phone (USB, Drive, messaging app).
+2. Open it and allow **Install unknown apps** when Android asks.
+
+## Build the APK
+
+Needs Node 18+, **JDK 21**, and Android Studio with SDK 36 plus **NDK** and **CMake** (SDK Manager > SDK Tools).
 
 ```bash
 npm install
-node server.js
+npm run sync                     # installs express/multer for the phone, then `cap sync android`
+cd android
+gradlew.bat assembleDebug        # macOS/Linux: ./gradlew assembleDebug
 ```
 
-1. On the device running ShaLo, open `http://localhost:3000`.
-2. Tap **Add a device**. A QR code and a 6-digit code appear.
-3. On the other device, scan the QR code with the camera. Or open the address shown in the window and type the 6-digit code.
+APK: `android/app/build/outputs/apk/debug/app-debug.apk`
+Or run `npm run open` and use **Build > Build APK(s)** in Android Studio.
+Run `npm run sync` again after any change inside `www/`.
 
-All devices must be on the same Wi-Fi.
-
-## How joining works
-
-- The code is made when **Add a device** opens and deleted when the window closes.
-- A code works **once** and expires after **2 minutes**. When someone joins, a fresh code appears right away for the next device.
-- A joined device stays signed in for 12 hours. **Sign out all devices** in the same window removes everyone at once.
-- Only the device running ShaLo can make codes. Joined devices can send and receive but cannot add others.
-- Joining is limited to 8 tries per minute from one device, so codes can't be guessed.
-
-## Phone to phone
-
-- **With a laptop or PC:** run the server on it, then join from both phones.
-- **Without a laptop:** one Android phone can host using [Termux](https://termux.dev):
-  ```
-  pkg install nodejs
-  cd shalo
-  npm install
-  node server.js
-  ```
-  Open `http://localhost:3000` in the browser on that same phone to make codes. Keep Termux open so Android doesn't stop the server. iPhones can join but can't host.
-- **No Wi-Fi:** turn on the host phone's hotspot and join it from the other phone.
-
-## Project structure
+## How it works
 
 ```
-server.js          Express server: join codes, upload, download, file list
-public/index.html  The ShaLo interface (single file, no build step)
-public/join.html   The page other devices see until they join
-public/qr.js       QR code generator, no dependencies
-shared/            Files people send (created on first run)
-meta.json          Which device sent each file (created on first upload)
+Capacitor WebView
+ ├─ https://localhost/          www/index.html        Start / Stop, IP addresses, battery settings
+ └─ http://127.0.0.1:3000/      www/nodejs/public/    the original ShaLo interface
+        ▲ HTTP
+NodeService  (foreground service, own process ":node", "ShaLo is sharing files" notification)
+ └─ nodejs-mobile → www/nodejs/server.js              Express + multer on port 3000
 ```
 
-## API
+- The service runs in its own process because nodejs-mobile starts only once per process. Start launches a fresh process, Stop ends it.
+- Shared files are stored in the app's private storage, so no storage permission is needed. Downloads on the host phone's own screen go to the Downloads folder.
+- Android 11+ blocks `os.networkInterfaces()` for Node, so the service writes the phone's IPs to `ips.json` every 5 seconds and `server.js` reads it.
 
-Everything except joining needs a joined device (or the host).
+### Project layout
+```
+capacitor.config.ts                         Capacitor settings
+www/index.html                              Start/Stop screen
+www/nodejs/server.js                        original server (small changes below)
+www/nodejs/public/                          original index.html, join.html, qr.js
+android/app/src/main/AndroidManifest.xml    permissions + service
+android/app/src/main/java/com/shalo/app/
+    MainActivity.java                       WebView setup, saves downloads, back button
+    NodeService.java                        foreground service that runs Node
+    ShaloServerPlugin.java                  start / stop / status / IPs for the UI
+    Net.java                                finds the phone's Wi-Fi IPs
+android/app/src/main/java/net/hampoelz/capacitor/nodejs/NodeStarter.java
+                                            starts libnode (from the capacitor-nodejs plugin)
+```
 
-| Method | Path | What it does |
-| --- | --- | --- |
-| GET | `/` | The interface, or the code page if not joined |
-| GET | `/join?code=123456` | Joins with a code (what the QR code opens) |
-| POST | `/api/join` | Joins with a code (`{"code": "123456"}`) |
-| GET | `/api/files` | Lists shared files, newest first |
-| POST | `/upload` | Sends one or more files (form field `files`) |
-| GET | `/files/<id>` | Downloads a file under its original name |
-| GET | `/view/<id>` | Opens a safe file type in the browser (photos, video, audio, PDF, text) |
-| GET, DELETE | `/api/invite` | Host only: current join code, or delete it |
-| POST | `/api/revoke` | Host only: sign out all devices |
+### Changes to the original ShaLo files
+| File | Change |
+| --- | --- |
+| `server.js` | `SHALO_DATA` folder for `shared/` and `meta.json`; IP lookup falls back to `ips.json` |
+| `public/index.html` | small script adding the "⚙ Server" link (only inside the app) |
+| `public/join.html`, `qr.js` | unchanged |
 
-## Security
+## Permissions
+`INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`, `WAKE_LOCK`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `POST_NOTIFICATIONS`, and legacy storage permissions that apply only on Android 9 and older.
 
-What ShaLo protects:
-- Nobody can list, upload or download without a one-time code or a session from one.
-- Other websites can't send files to ShaLo through your browser.
-- Only photos, video, audio, PDF and plain text can open in the browser, and they are sandboxed. Anything else (HTML, SVG, scripts) can only be downloaded, so a shared file can never run code in the page.
-- Filenames are cleaned, and the page is served with strict security headers.
-
-What it does not protect:
-- Traffic is plain `http://`, like most local tools. Someone who has joined your Wi-Fi could in theory read it, so use a home network with a WPA2 or WPA3 password and don't use ShaLo on public Wi-Fi.
-- Files stay in `shared/` on the host until you delete them, and anyone who has joined can download them.
-- Anyone with access to the host device itself can open ShaLo without a code.
+## Limitations
+- **Android 15+:** `dataSync` services may run about 6 hours per 24 hours. Sharing then stops; tap Start again.
+- **Battery:** set ShaLo to **Unrestricted** (button on the Start screen). Xiaomi, Huawei, Samsung and OnePlus add their own app killers (see dontkillmyapp.com).
+- **Background start:** Android 12+ blocks it. Start the server from the app screen.
+- **PDFs** can't open inline on the host phone (WebView limit). Other devices' browsers are fine. Use Download on the host.
+- **Storage:** a 2 GB upload needs that much free space on the host phone.
+- **Network:** guest or public Wi-Fi often stops devices from seeing each other. Traffic is plain `http://`, so use a home network or hotspot with a password.
+- **Stopping** ends all sessions; devices join again with a new code.
+- The APK is about 60 MB because it includes Node (arm64-v8a, armeabi-v7a, x86_64).
 
 ## Troubleshooting
-
-- **Other devices can't connect:** allow port 3000 through the host's firewall. Windows and macOS usually ask the first time.
-- **Still can't connect:** some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.
-- **A file link asks for a code:** that is the protection working. Enter the 6-digit code and you land on the file. Apps and scripts that call ShaLo without joining get a JSON error instead.
-- **"Code expired":** codes last 2 minutes and work once. Tap **Add a device** again for a fresh one.
-- **Code opens the wrong page:** if the host has more than one network, pick the one the other device is on in the Add a device window.
-- **No Open button on a file:** only photos, videos, audio, PDFs and text files can open in the browser. Use Download for the rest. iPhone HEIC photos need Download too, because most browsers can't show them.
-- **PDF looks cut off on a phone:** some phone browsers show only the first page inside the viewer. Tap **New tab** to open the whole PDF.
-- **Copy does nothing on a phone:** some phone browsers block the clipboard on plain `http://` pages. Select the address and copy it by hand.
-- **Fonts look plain:** the pages load fonts from Google Fonts and fall back to system fonts with no internet. Everything else still works.
-
-## Changing the port or limits
-
-Edit `PORT`, `INVITE_MS`, `SESSION_MS` and `fileSize` at the top of `server.js`.
+- **Other device can't connect:** same Wi-Fi? Try the hotspot instead.
+- **"Code expired":** tap **Add a device** again.
+- **Server stopped by itself:** check battery settings, and the 6-hour limit on Android 15+.
+- **Build fails:** check JDK 21 and that NDK and CMake are installed. The `capacitor-nodejs` plugin used for Node is a beta release and needs Capacitor 8.
+- **Original (PC) version:** see `ORIGINAL-README.md`.

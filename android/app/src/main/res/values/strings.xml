@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ShaLo</string>
+    <string name="title_activity_main">ShaLo</string>
+    <string name="package_name">com.shalo.app</string>
+    <string name="custom_url_scheme">com.shalo.app</string>
+</resources>

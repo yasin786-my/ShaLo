@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ShaLo</title>
+<style>
+  :root { --bg:#fff7ea; --ink:#241a12; --card:#fff; --accent:#ff6b35; --ok:#1f9d55; --mute:#7a6a5c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1b1511; --ink:#fff3e3; --card:#2a211b; --mute:#b8a898; } }
+  * { box-sizing:border-box }
+  body { margin:0; padding:max(24px,env(safe-area-inset-top)) 20px 32px; background:var(--bg); color:var(--ink);
+         font:16px/1.45 Figtree,system-ui,sans-serif; min-height:100vh }
+  h1 { font:400 40px "Bagel Fat One",system-ui,sans-serif; margin:0 0 4px }
+  p.sub { margin:0 0 20px; color:var(--mute) }
+  .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:0 2px 10px #0001 }
+  .pill { display:inline-block; padding:4px 12px; border-radius:99px; font-weight:700; font-size:14px; background:#8883; }
+  .pill.on { background:var(--ok); color:#fff }
+  button { width:100%; border:0; border-radius:16px; padding:16px; font:700 17px inherit; font-family:inherit;
+           background:var(--accent); color:#fff; margin-top:12px }
+  button.alt { background:#8882; color:var(--ink) }
+  button:disabled { opacity:.5 }
+  .url { font:600 18px ui-monospace,monospace; word-break:break-all; margin:6px 0 }
+  small { color:var(--mute) }
+</style>
+</head>
+<body>
+<h1>ShaLo</h1>
+<p class="sub">Share files over Wi-Fi. This phone is the host.</p>
+
+<div class="card">
+  <span id="pill" class="pill">Stopped</span>
+  <button id="toggle">Start sharing</button>
+  <button id="open" class="alt" hidden>Open ShaLo (add devices, send files)</button>
+</div>
+
+<div class="card" id="addr" hidden>
+  <b>Other devices open:</b>
+  <div id="urls"></div>
+  <small>Same Wi-Fi (or this phone's hotspot). In ShaLo tap <b>Add a device</b> for the QR code and 6-digit code.</small>
+</div>
+
+<div class="card">
+  <b>Keep it running</b>
+  <p><small>Android may pause apps in the background. Set ShaLo to “Unrestricted” battery use for reliable transfers.</small></p>
+  <button id="battery" class="alt">Battery settings</button>
+</div>
+
+<script>
+const S = Capacitor.registerPlugin('ShaloServer');
+const $ = s => document.querySelector(s);
+let running = false, busy = false;
+
+async function refresh() {
+  try {
+    const st = await S.status();
+    running = st.running;
+    $('#pill').textContent = running ? 'Sharing files' : 'Stopped';
+    $('#pill').className = 'pill' + (running ? ' on' : '');
+    $('#toggle').textContent = running ? 'Stop sharing' : 'Start sharing';
+    $('#open').hidden = !running;
+    const a = await S.getAddresses();
+    $('#addr').hidden = !running;
+    $('#urls').innerHTML = a.urls.length
+      ? a.urls.map(u => '<div class="url">' + u + '</div>').join('')
+      : '<small>No Wi-Fi or hotspot address found. Connect to Wi-Fi or turn on the hotspot.</small>';
+  } catch (e) { $('#pill').textContent = 'Error: ' + e.message; }
+}
+
+$('#toggle').onclick = async () => {
+  if (busy) return; busy = true; $('#toggle').disabled = true;
+  try {
+    if (running) { await S.stop(); await new Promise(r => setTimeout(r, 600)); }
+    else {
+      await S.start();
+      for (let i = 0; i < 40; i++) { await new Promise(r => setTimeout(r, 500)); if ((await S.status()).running) break; }
+      if ((await S.status()).running) { location.href = 'http://127.0.0.1:3000/'; return; }
+    }
+  } catch (e) { alert(e.message || e); }
+  busy = false; $('#toggle').disabled = false; refresh();
+};
+$('#open').onclick = () => { location.href = 'http://127.0.0.1:3000/'; };
+$('#battery').onclick = () => S.openBatterySettings();
+
+refresh(); setInterval(refresh, 3000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+</script>
+</body>
+</html>

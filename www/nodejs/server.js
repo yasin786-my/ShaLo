@@ -9,7 +9,9 @@ const app = express();
 const PORT = 3000;
 const SESSION_MS = 12 * 60 * 60 * 1000;   // how long a joined device stays signed in
 const INVITE_MS = 2 * 60 * 1000;          // how long a join code works
-const shared = path.join(__dirname, "shared");
+// ShaLo Android: the app passes SHALO_DATA (a folder that survives app updates). On a PC it falls back to this folder.
+const DATA = process.env.SHALO_DATA || __dirname;
+const shared = path.join(DATA, "shared");
 
 fs.mkdirSync(shared, { recursive: true });
 app.disable("x-powered-by");
@@ -33,15 +35,20 @@ let invite = null;            // { code, expires }: one join code at a time, sin
 let joined = 0;
 
 const ipOf = req => (req.socket.remoteAddress || "").replace(/^::ffff:/, "");
-const lanUrls = () => Object.values(os.networkInterfaces()).flat()
-    .filter(i => i && i.family === "IPv4" && !i.internal)
-    .map(i => `http://${i.address}:${PORT}`);
+// ShaLo Android: os.networkInterfaces() is blocked for Node on Android 11+, so the app writes ips.json for us.
+const lanIps = () => {
+    try {
+        return Object.values(os.networkInterfaces()).flat()
+            .filter(i => i && i.family === "IPv4" && !i.internal).map(i => i.address);
+    } catch {}
+    try { return JSON.parse(fs.readFileSync(path.join(DATA, "ips.json"), "utf8")); } catch { return []; }
+};
+const lanUrls = () => lanIps().map(ip => `http://${ip}:${PORT}`);
 
 // The device running ShaLo is trusted; every other device must join with a code
 const isHost = req => {
     const ip = ipOf(req);
-    return ip === "127.0.0.1" || ip === "::1" ||
-        Object.values(os.networkInterfaces()).flat().some(i => i && i.address === ip);
+    return ip === "127.0.0.1" || ip === "::1" || lanIps().includes(ip);
 };
 const cookieOf = (req, name) => {
     const c = (req.headers.cookie || "").split(/;\s*/).find(p => p.startsWith(name + "="));
@@ -163,7 +170,7 @@ const upload = multer({
 });
 
 // Remembers which device sent each file
-const metaFile = path.join(__dirname, "meta.json");
+const metaFile = path.join(DATA, "meta.json");
 let meta = {};
 try { meta = JSON.parse(fs.readFileSync(metaFile, "utf8")); } catch {}
 const saveMeta = () => fs.writeFile(metaFile, JSON.stringify(meta), () => {});

@@ -1,0 +1,7 @@
+{
+  "name": "shalo-server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "dependencies": { "express": "^5.1.0", "multer": "^2.0.0" }
+}
