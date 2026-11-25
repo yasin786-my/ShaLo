@@ -18,9 +18,9 @@ app.disable("x-powered-by");
 app.use((req, res, next) => {
     res.set({
         "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "DENY",
+        "X-Frame-Options": "SAMEORIGIN",
         "Referrer-Policy": "no-referrer",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
     });
     next();
 });
@@ -55,8 +55,15 @@ const authed = req => {
     sessions.delete(t);
     return false;
 };
-const requireAuth = (req, res, next) =>
-    authed(req) ? next() : res.status(401).json({ error: "Join ShaLo with a code first." });
+// Browsers opening a link get the code page; apps and scripts get a JSON error
+const requireAuth = (req, res, next) => {
+    if (authed(req)) return next();
+    if ((req.headers.accept || "").includes("text/html")) {
+        res.set("Cache-Control", "no-store");
+        return res.status(401).sendFile(path.join(__dirname, "public", "join.html"));
+    }
+    res.status(401).json({ error: "Join ShaLo with a code first." });
+};
 const requireHost = (req, res, next) =>
     isHost(req) ? next() : res.status(403).json({ error: "Only the device running ShaLo can do this." });
 // Blocks other websites from sending requests to ShaLo through your browser
@@ -166,6 +173,37 @@ function sender(req) {
     return { id: String(req.headers["x-device-id"] || "").slice(0, 32), name: name.slice(0, 40) };
 }
 const displayName = name => name.replace(/^\d{13}-/, "");
+
+// Only these safe types can open inside the browser. Everything else (HTML, SVG, scripts...)
+// can only be downloaded, so a shared file can never run code in the page.
+const VIEWABLE = {
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif",
+    ".webp": "image/webp", ".avif": "image/avif", ".bmp": "image/bmp",
+    ".mp4": "video/mp4", ".m4v": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime",
+    ".mp3": "audio/mpeg", ".wav": "audio/wav", ".m4a": "audio/mp4", ".ogg": "audio/ogg",
+    ".pdf": "application/pdf",
+    ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
+    ".csv": "text/plain; charset=utf-8", ".json": "text/plain; charset=utf-8", ".log": "text/plain; charset=utf-8"
+};
+app.get("/view/:id", requireAuth, (req, res) => {
+    const id = req.params.id;
+    if (id !== path.basename(id) || id.startsWith(".")) return res.status(404).send("Not found.");
+    const type = VIEWABLE[path.extname(id).toLowerCase()];
+    if (!type) return res.status(415).send("This file type can't open in the browser. Download it instead.");
+    const file = path.join(shared, id);
+    if (!fs.existsSync(file)) return res.status(404).send("Not found.");
+    const headers = {
+        "Content-Type": type,
+        "Content-Disposition": "inline; filename*=UTF-8''" + encodeURIComponent(displayName(id)),
+        "X-Content-Type-Options": "nosniff"
+    };
+    // Sandbox everything except PDF (the browser's PDF viewer doesn't work inside a sandbox)
+    if (type !== "application/pdf") {
+        headers["Content-Security-Policy"] = "sandbox; default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'";
+    }
+    res.set(headers);
+    res.sendFile(file, { dotfiles: "deny" });
+});
 
 // Downloads always save as a file; they never open inside the browser
 app.use("/files", requireAuth, express.static(shared, {
