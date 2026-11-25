@@ -53,6 +53,24 @@ public class ShaloServerPlugin extends Plugin {
         }).start();
     }
 
+    /** Last lines of the service and Node logs, shown on the controls screen when the server won't start. */
+    @PluginMethod
+    public void getLog(PluginCall call) {
+        StringBuilder sb = new StringBuilder();
+        java.io.File dir = new java.io.File(getContext().getFilesDir(), "shalo-data");
+        for (String n : new String[]{"service-log.txt", "node-log.txt"}) {
+            try {
+                java.io.File f = new java.io.File(dir, n);
+                if (f.exists()) sb.append("== ").append(n).append(" ==\n").append(new String(java.nio.file.Files.readAllBytes(f.toPath()))).append("\n");
+            } catch (Exception e) { sb.append(n).append(": ").append(e).append("\n"); }
+        }
+        if (sb.length() == 0) sb.append("No log yet: the service did not start. Check notification permission and battery settings.");
+        String t = sb.toString();
+        JSObject r = new JSObject();
+        r.put("log", t.length() > 3500 ? t.substring(t.length() - 3500) : t);
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void getAddresses(PluginCall call) {
         JSObject r = new JSObject();

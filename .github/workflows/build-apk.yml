@@ -37,6 +37,9 @@ jobs:
       - name: Install server packages and sync Capacitor
         run: npm run sync
 
+      - name: Generate app icons from assets/logo.png
+        run: npx --yes @capacitor/assets generate --android --iconBackgroundColor '#ff6b35' --iconBackgroundColorDark '#ff6b35'
+        
       - name: Build debug APK
         working-directory: android
         run: |

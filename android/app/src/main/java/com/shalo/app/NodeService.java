@@ -76,6 +76,8 @@ public class NodeService extends Service {
     private void startNode() {
         if (nodeStarted) return;
         nodeStarted = true;
+        new File(dataDir(), "service-log.txt").delete();
+        log("Service started, preparing Node");
         new Thread(null, () -> {
             try {
                 File base = new File(getFilesDir(), "nodejs");
@@ -92,11 +94,20 @@ public class NodeService extends Service {
                 Map<String, String> env = new HashMap<>();
                 env.put("SHALO_DATA", dataDir().getAbsolutePath());   // survives app updates (project folder does not)
                 env.put("NODE_PATH", new File(project, "node_modules").getAbsolutePath());
+                log("Starting Node with " + new File(project, "server.js").exists() + " server.js, node_modules: "
+                        + new File(project, "node_modules/express").exists());
                 NodeStarter.run(new File(project, "server.js").getAbsolutePath(), env, getCacheDir().getAbsolutePath());
             } catch (Throwable t) {
                 Log.e(TAG, "Node failed to start", t);
+                log("Node failed to start: " + Log.getStackTraceString(t));
             }
         }, "node-main", 4 * 1024 * 1024).start();
+    }
+
+    private void log(String m) {
+        try (FileWriter w = new FileWriter(new File(dataDir(), "service-log.txt"), true)) {
+            w.write(new java.util.Date() + " " + m + "\n");
+        } catch (Exception ignored) {}
     }
 
     private File dataDir() { File d = new File(getFilesDir(), "shalo-data"); d.mkdirs(); return d; }

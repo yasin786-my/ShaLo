@@ -43,6 +43,8 @@
   <b>Keep it running</b>
   <p><small>Android may pause apps in the background. Set ShaLo to “Unrestricted” battery use for reliable transfers.</small></p>
   <button id="battery" class="alt">Battery settings</button>
+  <button id="showlog" class="alt">Show log</button>
+  <pre id="log" hidden style="white-space:pre-wrap;word-break:break-all;font-size:12px"></pre>
 </div>
 
 <script>
@@ -72,13 +74,16 @@ $('#toggle').onclick = async () => {
     if (running) { await S.stop(); await new Promise(r => setTimeout(r, 600)); }
     else {
       await S.start();
-      for (let i = 0; i < 40; i++) { await new Promise(r => setTimeout(r, 500)); if ((await S.status()).running) break; }
+      for (let i = 0; i < 120; i++) { await new Promise(r => setTimeout(r, 500)); if ((await S.status()).running) break; }
       if ((await S.status()).running) { location.href = 'http://127.0.0.1:3000/'; return; }
+      await showLog(); alert('The server did not start. The log is shown at the bottom of this screen.');
     }
   } catch (e) { alert(e.message || e); }
   busy = false; $('#toggle').disabled = false; refresh();
 };
 $('#open').onclick = () => { location.href = 'http://127.0.0.1:3000/'; };
+async function showLog() { const l = await S.getLog(); $('#log').textContent = l.log; $('#log').hidden = false; }
+$('#showlog').onclick = showLog;
 $('#battery').onclick = () => S.openBatterySettings();
 
 refresh(); setInterval(refresh, 3000);

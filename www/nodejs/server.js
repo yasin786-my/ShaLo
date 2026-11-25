@@ -1,3 +1,16 @@
+// ShaLo Android: keep a small log in the data folder so the app can show why the server didn't start.
+const log = (() => {
+    const dir = process.env.SHALO_DATA;
+    if (!dir) return () => {};
+    const f = require("path").join(dir, "node-log.txt");
+    const w = m => { try { require("fs").appendFileSync(f, new Date().toISOString() + " " + m + "\n"); } catch {} };
+    try { require("fs").mkdirSync(dir, { recursive: true }); require("fs").writeFileSync(f, ""); } catch {}
+    w("Node " + process.version + " starting");
+    process.on("uncaughtException", e => w("CRASH " + (e && e.stack || e)));
+    process.on("unhandledRejection", e => w("REJECTION " + (e && e.stack || e)));
+    return w;
+})();
+
 const express = require("express");
 const multer = require("multer");
 const crypto = require("crypto");
@@ -251,7 +264,9 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: "Something went wrong. Try again." });
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", err => {
+    if (err) { log("Could not listen on port " + PORT + ": " + (err.stack || err)); console.error(err); return; }
+    log("Listening on port " + PORT);
     console.log("ShaLo is running.");
     console.log("On this device, open: http://localhost:" + PORT);
     console.log("Other devices join with a code from the Add a device button, or from this address:");
