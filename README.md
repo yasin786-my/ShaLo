@@ -13,6 +13,7 @@ One device runs the ShaLo server. Other devices join it with a one-time code, th
 - Drag and drop on desktop, file picker on phones
 - Multiple files at once, with a progress bar for each
 - Shows which device sent each file
+- Connected devices list for the host: name, address, online or last seen, and sign out one device or all
 - The shared folder updates on every device within a few seconds
 - Files up to 2 GB each
 
@@ -35,8 +36,8 @@ All devices must be on the same Wi-Fi.
 
 - The code is made when **Add a device** opens and deleted when the window closes.
 - A code works **once** and expires after **2 minutes**. When someone joins, a fresh code appears right away for the next device.
-- A joined device stays signed in for 12 hours. **Sign out all devices** in the same window removes everyone at once.
-- Only the device running ShaLo can make codes. Joined devices can send and receive but cannot add others.
+- A joined device stays signed in for 12 hours. The **Devices** button shows everyone who has joined, whether they are online, and lets you sign out one device or all of them.
+- Only the device running ShaLo can make codes and see the device list. Joined devices can send and receive but cannot add others.
 - Joining is limited to 8 tries per minute from one device, so codes can't be guessed.
 
 ## Phone to phone
@@ -76,6 +77,9 @@ Everything except joining needs a joined device (or the host).
 | POST | `/upload` | Sends one or more files (form field `files`) |
 | GET | `/files/<id>` | Downloads a file under its original name |
 | GET | `/view/<id>` | Opens a safe file type in the browser (photos, video, audio, PDF, text) |
+| GET | `/api/devices` | Host only: devices that have joined |
+| DELETE | `/api/devices/<id>` | Host only: sign one device out |
+| POST | `/api/hello` | A joined device sets its display name |
 | GET, DELETE | `/api/invite` | Host only: current join code, or delete it |
 | POST | `/api/revoke` | Host only: sign out all devices |
 
@@ -97,6 +101,7 @@ What it does not protect:
 - **Other devices can't connect:** allow port 3000 through the host's firewall. Windows and macOS usually ask the first time.
 - **Still can't connect:** some guest and public Wi-Fi networks stop devices from reaching each other. Use a home network or a hotspot.
 - **A file link asks for a code:** that is the protection working. Enter the 6-digit code and you land on the file. Apps and scripts that call ShaLo without joining get a JSON error instead.
+- **A device is missing from the list:** the list shows devices that joined ShaLo with a code, not every device on your Wi-Fi. A device only appears after it joins, and disappears when you sign it out or it has been signed in for 12 hours.
 - **"Code expired":** codes last 2 minutes and work once. Tap **Add a device** again for a fresh one.
 - **Code opens the wrong page:** if the host has more than one network, pick the one the other device is on in the Add a device window.
 - **No Open button on a file:** only photos, videos, audio, PDFs and text files can open in the browser. Use Download for the rest. iPhone HEIC photos need Download too, because most browsers can't show them.

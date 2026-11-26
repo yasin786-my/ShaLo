@@ -66,6 +66,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .meta{flex:1;min-width:0}
 .meta b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta small{font-weight:600}
+.acts.hbtns{display:none}html[data-host] .acts.hbtns{display:flex}
 .joinbtn{background:var(--pink);box-shadow:3px 3px 0 var(--ink)}
 dialog{border:3px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:0;background:var(--white);color:var(--ink);width:min(700px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
 dialog::backdrop{background:rgba(27,18,64,.6)}
@@ -80,6 +81,14 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
 .pin{font:400 2.5rem/1 var(--display);letter-spacing:.12em;margin:0 0 6px}
 .jtext .jmsg{min-height:1.5em;margin:0 0 14px;font-weight:600}
 .link{background:none;border:0;padding:0;margin-top:16px;font:600 .9rem var(--body);color:var(--ink);text-decoration:underline;cursor:pointer}
+.dwrap{padding:clamp(18px,3vw,30px)}
+.dsub{margin:4px 0 16px}
+.devlist{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:10px}
+.dev{display:flex;align-items:center;gap:12px;border:3px solid var(--ink);border-radius:18px;padding:10px 12px}
+.dot{flex:none;width:16px;height:16px;border-radius:50%;border:3px solid var(--ink);background:var(--white)}
+.dot.on{background:var(--blue)}
+.dev .meta small{display:block}
+@media(max-width:480px){.dev{flex-wrap:wrap}.dev .btn{width:100%;text-align:center}}
 .jbtns{display:flex;gap:12px;flex-wrap:wrap}
 .btn.sm.ghost{background:var(--white);color:var(--ink)}
 .nets{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
@@ -107,7 +116,7 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
       <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
       <p class="tag">Send files both ways between any devices on this Wi-Fi.</p>
     </div>
-    <button class="btn sm joinbtn" id="open" type="button">Add a device</button>
+    <div class="acts hbtns"><button class="btn sm ghost" id="devbtn" type="button">Devices</button><button class="btn sm joinbtn" id="open" type="button">Add a device</button></div>
   </header>
 
   <div class="grid">
@@ -153,6 +162,15 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
   <div class="vbody" id="vbody"></div>
 </dialog>
 
+<dialog id="devs" aria-labelledby="devsT">
+  <div class="dwrap">
+    <h2 id="devsT">Connected devices</h2>
+    <p class="dsub">Devices that joined ShaLo with a code. Online means active in the last few seconds.</p>
+    <ul class="devlist" id="devlist"></ul>
+    <div class="jbtns"><button class="btn sm ghost" id="signall" type="button">Sign out all devices</button><button class="btn sm" id="devclose" type="button">Done</button></div>
+  </div>
+</dialog>
+
 <dialog id="join" aria-labelledby="joinH">
   <div class="jwrap">
     <div class="qr" id="qr"></div>
@@ -164,7 +182,6 @@ dialog::backdrop{background:rgba(27,18,64,.6)}
       <p class="jmsg" id="jmsg" role="status"></p>
       <div class="jbtns"><button class="btn sm" id="copy" type="button">Copy address</button><button class="btn sm ghost" id="close" type="button">Done</button></div>
       <div class="nets" id="nets" role="group" aria-label="Choose a network address"></div>
-      <button class="link" id="revoke" type="button">Sign out all devices</button>
     </div>
   </div>
 </dialog>
@@ -217,6 +234,37 @@ $("#vclose").addEventListener("click", () => viewer.close());
 viewer.addEventListener("click", e => { if (e.target === viewer) viewer.close(); });
 viewer.addEventListener("keydown", e => { if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
 viewer.addEventListener("close", () => $("#vbody").replaceChildren());   // also stops video and audio
+
+// Connected devices (host only; the server tells the page who the host is)
+const isHostPage = document.documentElement.hasAttribute("data-host");
+const devsDlg = $("#devs");
+function renderDevices(list) {
+  $("#devbtn").textContent = "Devices" + (list.length ? " (" + list.length + ")" : "");
+  if (!devsDlg.open) return;
+  const ul = $("#devlist"); ul.replaceChildren();
+  if (!list.length) {
+    const e = el("li", "empty"); e.append(el("strong", "", "No devices yet"), "Tap Add a device to invite one.");
+    ul.append(e); return;
+  }
+  list.forEach(d => {
+    const li = el("li", "dev"), m = el("div", "meta"), b = el("button", "btn sm ghost", "Sign out");
+    const dot = el("span", "dot" + (d.online ? " on" : "")); dot.setAttribute("aria-hidden", "true");
+    m.append(el("b", "", d.name), el("small", "", (d.online ? "Online" : "Last seen " + ago(d.lastSeen)) + " · " + d.ip + " · joined " + ago(d.joinedAt)));
+    b.type = "button"; b.setAttribute("aria-label", "Sign out " + d.name + " " + d.ip);
+    b.addEventListener("click", async () => { await fetch("/api/devices/" + d.id, { method: "DELETE" }); refreshDevices(); });
+    li.append(dot, m, b); ul.append(li);
+  });
+}
+async function refreshDevices() {
+  if (!isHostPage) return;
+  try { const r = await fetch("/api/devices"); if (r.ok) renderDevices(await r.json()); } catch {}
+}
+$("#devbtn").addEventListener("click", async () => { devsDlg.showModal(); await refreshDevices(); });
+$("#devclose").addEventListener("click", () => devsDlg.close());
+devsDlg.addEventListener("click", e => { if (e.target === devsDlg) devsDlg.close(); });
+$("#signall").addEventListener("click", async () => { await fetch("/api/revoke", { method: "POST" }); refreshDevices(); });
+// A joined device tells ShaLo what to call it
+if (!isHostPage) fetch("/api/hello", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: myName }) }).catch(() => {});
 
 async function refresh() {
   try {
@@ -325,9 +373,6 @@ async function loadInvite() {
 $("#copy").addEventListener("click", () => {
   const b = $("#copy"); copyText(urls[pick]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy address", 1500); });
 });
-$("#revoke").addEventListener("click", async () => {
-  try { await fetch("/api/revoke", { method: "POST" }); say("All other devices were signed out."); } catch {}
-});
 const dlg = $("#join");
 // A fresh code is made when the window opens and deleted when it closes
 $("#open").addEventListener("click", async () => {
@@ -346,11 +391,10 @@ dlg.addEventListener("close", () => {
 });
 $("#close").addEventListener("click", () => dlg.close());
 dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
-// Only the device running ShaLo can add devices
-fetch("/api/me").then(r => r.status === 401 ? location.reload() : r.json()).then(d => { if (d && !d.host) $("#open").hidden = true; }).catch(() => {});
 
 refresh();
-setInterval(() => { if (!document.hidden) refresh(); }, 4000);
+refreshDevices();
+setInterval(() => { if (!document.hidden) { refresh(); refreshDevices(); } }, 4000);
 </script>
 </body>
 </html>

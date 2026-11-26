@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 app.use("/api", (req, res, next) => { res.set("Cache-Control", "no-store"); next(); });
 
 // ---------- Who is allowed in ----------
-const sessions = new Map();   // session token -> expiry time
+const sessions = new Map();   // session token -> { id, name, ip, joinedAt, lastSeen, exp }
 const tries = new Map();      // ip -> failed-join counter
 let invite = null;            // { code, expires }: one join code at a time, single use
 let joined = 0;
@@ -50,11 +50,14 @@ const cookieOf = (req, name) => {
 const authed = req => {
     if (isHost(req)) return true;
     const t = cookieOf(req, "shalo_session");
-    const exp = sessions.get(t);
-    if (exp && exp > Date.now()) return true;
+    const sess = sessions.get(t);
+    if (sess && sess.exp > Date.now()) { sess.lastSeen = Date.now(); return true; }
     sessions.delete(t);
     return false;
 };
+const deviceName = ua => /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" :
+    /Windows/.test(ua) ? "Windows PC" : /Macintosh|Mac OS/.test(ua) ? "Mac" : /CrOS/.test(ua) ? "Chromebook" :
+    /Linux/.test(ua) ? "Linux PC" : "Device";
 // Browsers opening a link get the code page; apps and scripts get a JSON error
 const requireAuth = (req, res, next) => {
     if (authed(req)) return next();
@@ -90,12 +93,17 @@ const currentInvite = () => {
     return invite;
 };
 // A code works once: using it deletes it
-const redeem = code => {
+const redeem = (code, req) => {
     if (!invite || invite.expires <= Date.now() || !/^\d{6}$/.test(code)) return null;
     if (!crypto.timingSafeEqual(Buffer.from(code), Buffer.from(invite.code))) return null;
     invite = null; joined++;
     const token = crypto.randomBytes(32).toString("hex");
-    sessions.set(token, Date.now() + SESSION_MS);
+    const now = Date.now();
+    sessions.set(token, {
+        id: crypto.randomBytes(6).toString("hex"),
+        name: deviceName(req.headers["user-agent"] || ""),
+        ip: ipOf(req), joinedAt: now, lastSeen: now, exp: now + SESSION_MS
+    });
     return token;
 };
 const startSession = (res, token) =>
@@ -103,19 +111,23 @@ const startSession = (res, token) =>
 
 setInterval(() => {
     const now = Date.now();
-    sessions.forEach((exp, t) => { if (exp <= now) sessions.delete(t); });
+    sessions.forEach((x, t) => { if (x.exp <= now) sessions.delete(t); });
     tries.forEach((v, ip) => { if (v.reset <= now) tries.delete(ip); });
 }, 10 * 60 * 1000).unref();
 
 // ---------- Pages ----------
-app.get("/", (req, res, next) =>
-    authed(req) ? next() : res.sendFile(path.join(__dirname, "public", "join.html")));
+app.get(["/", "/index.html"], (req, res) => {
+    if (!authed(req)) return res.sendFile(path.join(__dirname, "public", "join.html"));
+    let html = fs.readFileSync(path.join(__dirname, "public", "index.html"), "utf8");
+    if (isHost(req)) html = html.replace('<html lang="en">', '<html lang="en" data-host>');
+    res.set("Cache-Control", "no-store").type("html").send(html);
+});
 app.use(express.static(path.join(__dirname, "public")));
 
 // Scanning the QR code lands here
 app.get("/join", (req, res) => {
     if (tooMany(req)) return res.status(429).send("Too many tries. Wait a minute and try again.");
-    const token = redeem(String(req.query.code || ""));
+    const token = redeem(String(req.query.code || ""), req);
     if (!token) return res.redirect("/?expired=1");
     startSession(res, token);
     res.redirect("/");
@@ -124,13 +136,31 @@ app.get("/join", (req, res) => {
 // Typing the 6-digit code lands here
 app.post("/api/join", sameOrigin, express.json({ limit: "1kb" }), (req, res) => {
     if (tooMany(req)) return res.status(429).json({ error: "Too many tries. Wait a minute and try again." });
-    const token = redeem(String((req.body && req.body.code) || ""));
+    const token = redeem(String((req.body && req.body.code) || ""), req);
     if (!token) return res.status(401).json({ error: "That code didn't work. It may have expired." });
     startSession(res, token);
     res.json({ ok: true });
 });
 
-app.get("/api/me", requireAuth, (req, res) => res.json({ host: isHost(req) }));
+// A joined device tells ShaLo what to call it (the page knows better than the browser string)
+app.post("/api/hello", requireAuth, sameOrigin, express.json({ limit: "1kb" }), (req, res) => {
+    const sess = sessions.get(cookieOf(req, "shalo_session"));
+    const name = String((req.body && req.body.name) || "").trim().slice(0, 40);
+    if (sess && name) sess.name = name;
+    res.json({ ok: true });
+});
+
+// Host only: who has joined
+app.get("/api/devices", requireHost, (req, res) => {
+    const now = Date.now();
+    res.json([...sessions.values()].filter(x => x.exp > now)
+        .sort((a, b) => b.joinedAt - a.joinedAt)
+        .map(x => ({ id: x.id, name: x.name, ip: x.ip, joinedAt: x.joinedAt, lastSeen: x.lastSeen, online: now - x.lastSeen < 15000 })));
+});
+app.delete("/api/devices/:id", requireHost, sameOrigin, (req, res) => {
+    sessions.forEach((x, t) => { if (x.id === req.params.id) sessions.delete(t); });
+    res.json({ ok: true });
+});
 
 // Host only: the current join code. A fresh one appears as soon as it is used or expires.
 app.get("/api/invite", requireHost, (req, res) => {
