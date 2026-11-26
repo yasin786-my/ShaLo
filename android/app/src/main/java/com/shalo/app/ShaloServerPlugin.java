@@ -89,6 +89,20 @@ public class ShaloServerPlugin extends Plugin {
         }).start();
     }
 
+    /** Opens a web address in Chrome (falls back to the default browser). */
+    @PluginMethod
+    public void openInBrowser(PluginCall call) {
+        Uri uri = Uri.parse(call.getString("url", "http://127.0.0.1:" + NodeService.PORT + "/"));
+        Intent view = new Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            getContext().startActivity(new Intent(view).setPackage("com.android.chrome"));
+        } catch (Exception noChrome) {
+            try { getContext().startActivity(view); }
+            catch (Exception e) { call.reject("No browser found: " + e.getMessage()); return; }
+        }
+        call.resolve();
+    }
+
     @PluginMethod
     public void shareText(PluginCall call) {
         Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, call.getString("text", ""));

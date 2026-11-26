@@ -31,7 +31,16 @@
 <div class="card">
   <span id="pill" class="pill">Stopped</span>
   <button id="toggle">Start sharing</button>
-  <button id="open" class="alt" hidden>Open ShaLo (add devices, send files)</button>
+  <button id="open" hidden>Open ShaLo in Chrome</button>
+  <button id="openapp" class="alt" hidden>Open inside this app instead</button>
+</div>
+
+<div class="card">
+  <b>Join a friend's ShaLo</b>
+  <p><small>Type the address shown on the host's screen (like 192.168.1.50), then enter their 6-digit code on the next screen.</small></p>
+  <input id="joinaddr" inputmode="decimal" placeholder="192.168.1.50" autocomplete="off"
+         style="width:100%;padding:14px;border-radius:14px;border:2px solid #8884;font:600 18px ui-monospace,monospace;background:transparent;color:inherit">
+  <button id="join">Join</button>
 </div>
 
 <div class="card" id="addr" hidden>
@@ -72,7 +81,7 @@ async function refresh() {
     $('#pill').textContent = running ? 'Sharing files' : 'Stopped';
     $('#pill').className = 'pill' + (running ? ' on' : '');
     $('#toggle').textContent = running ? 'Stop sharing' : 'Start sharing';
-    $('#open').hidden = !running;
+    $('#open').hidden = !running; $('#openapp').hidden = !running;
     const a = await S.getAddresses();
     $('#addr').hidden = !running;
     $('#urls').innerHTML = a.urls.length
@@ -88,7 +97,7 @@ $('#toggle').onclick = async () => {
     else {
       await S.start();
       for (let i = 0; i < 120; i++) { await new Promise(r => setTimeout(r, 500)); if ((await S.status()).running) break; }
-      if ((await S.status()).running) { location.href = 'http://127.0.0.1:3000/'; return; }
+      if ((await S.status()).running) { await S.openInBrowser({ url: 'http://127.0.0.1:3000/' }); busy = false; $('#toggle').disabled = false; refresh(); return; }
       await showLog(); alert('The server did not start. The log is shown at the bottom of this screen.');
     }
   } catch (e) { alert(e.message || e); }
@@ -106,7 +115,16 @@ $('#code').onclick = async () => {
   } catch (e) { alert(e.message || e); }
 };
 $('#share').onclick = () => S.shareText({ text: shareMsg });
-$('#open').onclick = () => { location.href = 'http://127.0.0.1:3000/'; };
+try { $('#joinaddr').value = localStorage.getItem('lastHost') || ''; } catch (e) {}
+$('#join').onclick = () => {
+  let v = $('#joinaddr').value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  if (!/^(192\.168|10|172)\.[0-9.]+(:\d+)?$/.test(v)) { alert('Type the address from the host screen, like 192.168.1.50'); return; }
+  if (!/:\d+$/.test(v)) v += ':3000';
+  try { localStorage.setItem('lastHost', v.replace(/:3000$/, '')); } catch (e) {}
+  location.href = 'http://' + v + '/';
+};
+$('#open').onclick = () => S.openInBrowser({ url: 'http://127.0.0.1:3000/' });
+$('#openapp').onclick = () => { location.href = 'http://127.0.0.1:3000/'; };
 async function showLog() { const l = await S.getLog(); $('#log').textContent = l.log; $('#log').hidden = false; }
 $('#showlog').onclick = showLog;
 $('#battery').onclick = () => S.openBatterySettings();
