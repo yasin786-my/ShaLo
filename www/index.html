@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ShaLo</title>
+<script src="capacitor.js"></script>
 <style>
   :root { --bg:#fff7ea; --ink:#241a12; --card:#fff; --accent:#ff6b35; --ok:#1f9d55; --mute:#7a6a5c; }
   @media (prefers-color-scheme: dark) { :root { --bg:#1b1511; --ink:#fff3e3; --card:#2a211b; --mute:#b8a898; } }
@@ -48,6 +49,12 @@
 </div>
 
 <script>
+window.addEventListener('error', e => {
+  const b = document.createElement('pre');
+  b.style.cssText = 'color:#c00;white-space:pre-wrap;font-size:12px';
+  b.textContent = 'Error: ' + e.message;
+  document.body.appendChild(b);
+});
 const S = Capacitor.registerPlugin('ShaloServer');
 const $ = s => document.querySelector(s);
 let running = false, busy = false;
