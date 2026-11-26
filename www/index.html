@@ -37,7 +37,13 @@
 <div class="card" id="addr" hidden>
   <b>Other devices open:</b>
   <div id="urls"></div>
-  <small>Same Wi-Fi (or this phone's hotspot). In ShaLo tap <b>Add a device</b> for the QR code and 6-digit code.</small>
+  <small>Other devices: same Wi-Fi (or this phone's hotspot). Type the address above in their browser, then enter the 6-digit code.</small>
+  <button id="code" class="alt">Show join code</button>
+  <div id="codebox" hidden>
+    <div class="url" id="codeval" style="font-size:36px;letter-spacing:4px"></div>
+    <small id="codeinfo"></small>
+    <button id="share" class="alt">Share address + code</button>
+  </div>
 </div>
 
 <div class="card">
@@ -88,11 +94,27 @@ $('#toggle').onclick = async () => {
   } catch (e) { alert(e.message || e); }
   busy = false; $('#toggle').disabled = false; refresh();
 };
+let shareMsg = '';
+$('#code').onclick = async () => {
+  try {
+    const inv = await S.getInvite();
+    const url = (inv.urls || [])[0] || '(connect to Wi-Fi first)';
+    $('#codeval').textContent = String(inv.code).replace(/(\d{3})(\d{3})/, '$1 $2');
+    $('#codeinfo').textContent = 'Valid for ' + Math.round((inv.ttl || 120) / 60) + ' minutes. Address: ' + url;
+    shareMsg = 'ShaLo: join the same Wi-Fi, open ' + url + ' in a browser and enter the code ' + inv.code + ' (valid ' + Math.round((inv.ttl || 120) / 60) + ' min).';
+    $('#codebox').hidden = false;
+  } catch (e) { alert(e.message || e); }
+};
+$('#share').onclick = () => S.shareText({ text: shareMsg });
 $('#open').onclick = () => { location.href = 'http://127.0.0.1:3000/'; };
 async function showLog() { const l = await S.getLog(); $('#log').textContent = l.log; $('#log').hidden = false; }
 $('#showlog').onclick = showLog;
 $('#battery').onclick = () => S.openBatterySettings();
 
+if (location.hash === '#stop') {   // the red Stop button on the ShaLo screen lands here
+  history.replaceState(null, '', location.pathname);
+  S.stop().then(() => setTimeout(refresh, 800)).catch(e => alert(e.message || e));
+}
 refresh(); setInterval(refresh, 3000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 </script>

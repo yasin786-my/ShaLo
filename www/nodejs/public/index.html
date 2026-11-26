@@ -353,12 +353,20 @@ refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 4000);
 </script>
 <script>
-/* ShaLo Android: link back to the server controls (only shown inside the app) */
+/* ShaLo Android: "Server" and "Stop" buttons (only shown inside the app) */
 if (/ShaLoApp/.test(navigator.userAgent)) {
-  var back = document.createElement("a");
-  back.href = "https://localhost/"; back.textContent = "\u2699 Server";
-  back.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;padding:8px 14px;border-radius:99px;background:#241a12;color:#fff;font:700 13px system-ui,sans-serif;text-decoration:none;opacity:.85";
-  document.body.appendChild(back);
+  var bar = document.createElement("div");
+  bar.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:8px";
+  var mk = function (text, bg, href, ask) {
+    var a = document.createElement("a");
+    a.href = href; a.textContent = text;
+    a.style.cssText = "padding:8px 14px;border-radius:99px;background:" + bg + ";color:#fff;font:700 13px system-ui,sans-serif;text-decoration:none;opacity:.9";
+    if (ask) a.onclick = function (e) { if (!confirm(ask)) e.preventDefault(); };
+    bar.appendChild(a);
+  };
+  mk("\u2699 Server", "#241a12", "https://localhost/");
+  mk("\u25A0 Stop", "#c0392b", "https://localhost/#stop", "Stop sharing? Connected devices will be disconnected.");
+  document.body.appendChild(bar);
 }
 </script>
 </body>

@@ -71,6 +71,31 @@ public class ShaloServerPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** Creates a fresh 6-digit join code on the running server (same as "Add a device" in ShaLo). */
+    @PluginMethod
+    public void getInvite(PluginCall call) {
+        new Thread(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL("http://127.0.0.1:" + NodeService.PORT + "/api/invite").openConnection();
+                c.setConnectTimeout(1500); c.setReadTimeout(3000);
+                String body = new java.util.Scanner(c.getInputStream(), "UTF-8").useDelimiter("\\A").next();
+                c.disconnect();
+                JSObject r = new JSObject(body);
+                r.put("urls", new JSArray(Net.urls()));   // always the live addresses
+                call.resolve(r);
+            } catch (Exception e) {
+                call.reject("Start sharing first (" + e.getMessage() + ")");
+            }
+        }).start();
+    }
+
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, call.getString("text", ""));
+        getActivity().startActivity(Intent.createChooser(send, "Share ShaLo address"));
+        call.resolve();
+    }
+
     @PluginMethod
     public void getAddresses(PluginCall call) {
         JSObject r = new JSObject();
