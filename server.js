@@ -9,10 +9,24 @@ const app = express();
 const PORT = 3000;
 const SESSION_MS = 12 * 60 * 60 * 1000;   // how long a joined device stays signed in
 const INVITE_MS = 2 * 60 * 1000;          // how long a join code works
+const MAX_STORAGE = 10 * 1024 * 1024 * 1024; // total size of the shared folder
+const MAX_WRONG = 5;                      // wrong guesses before the join code is cancelled
+const LOCK_MS = 30 * 1000;                // pause before a new code after too many wrong guesses
+const KINDS = ["iPhone", "iPad", "Android", "Windows PC", "Mac", "Linux PC", "Chromebook", "Device"];
 const shared = path.join(__dirname, "shared");
 
 fs.mkdirSync(shared, { recursive: true });
 app.disable("x-powered-by");
+
+// Only answer to an IP address, localhost, or this computer's own name. A website that points its
+// own domain at this device (DNS rebinding) would otherwise be treated as the trusted host.
+const hostOk = value => {
+    const name = String(value || "").toLowerCase().replace(/:\d+$/, "");
+    const me = os.hostname().toLowerCase();
+    return /^(localhost|\[::1\]|(\d{1,3}\.){3}\d{1,3})$/.test(name) || name === me || name === me + ".local";
+};
+app.use((req, res, next) =>
+    hostOk(req.headers.host) ? next() : res.status(421).type("text").send("ShaLo only answers to its IP address or localhost."));
 
 // ---------- Security headers ----------
 app.use((req, res, next) => {
@@ -31,6 +45,7 @@ const sessions = new Map();   // session token -> { id, name, ip, joinedAt, last
 const tries = new Map();      // ip -> failed-join counter
 let invite = null;            // { code, expires }: one join code at a time, single use
 let joined = 0;
+let wrong = 0, lockUntil = 0;   // wrong guesses against the current code, and the pause after too many
 
 const ipOf = req => (req.socket.remoteAddress || "").replace(/^::ffff:/, "");
 const lanUrls = () => Object.values(os.networkInterfaces()).flat()
@@ -87,7 +102,9 @@ const tooMany = req => {
     return t.n > 8;
 };
 const currentInvite = () => {
+    if (Date.now() < lockUntil) return null;
     if (!invite || invite.expires <= Date.now()) {
+        wrong = 0;
         invite = { code: String(crypto.randomInt(0, 1000000)).padStart(6, "0"), expires: Date.now() + INVITE_MS };
     }
     return invite;
@@ -95,7 +112,11 @@ const currentInvite = () => {
 // A code works once: using it deletes it
 const redeem = (code, req) => {
     if (!invite || invite.expires <= Date.now() || !/^\d{6}$/.test(code)) return null;
-    if (!crypto.timingSafeEqual(Buffer.from(code), Buffer.from(invite.code))) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(code), Buffer.from(invite.code))) {
+        // Counted across every device, so guessing from many addresses doesn't help
+        if (++wrong >= MAX_WRONG) { invite = null; lockUntil = Date.now() + LOCK_MS; }
+        return null;
+    }
     invite = null; joined++;
     const token = crypto.randomBytes(32).toString("hex");
     const now = Date.now();
@@ -145,8 +166,8 @@ app.post("/api/join", sameOrigin, express.json({ limit: "1kb" }), (req, res) => 
 // A joined device tells ShaLo what to call it (the page knows better than the browser string)
 app.post("/api/hello", requireAuth, sameOrigin, express.json({ limit: "1kb" }), (req, res) => {
     const sess = sessions.get(cookieOf(req, "shalo_session"));
-    const name = String((req.body && req.body.name) || "").trim().slice(0, 40);
-    if (sess && name) sess.name = name;
+    const name = String((req.body && req.body.name) || "");
+    if (sess && KINDS.includes(name)) sess.name = name;   // only known device types, never free text
     res.json({ ok: true });
 });
 
@@ -165,6 +186,7 @@ app.delete("/api/devices/:id", requireHost, sameOrigin, (req, res) => {
 // Host only: the current join code. A fresh one appears as soon as it is used or expires.
 app.get("/api/invite", requireHost, (req, res) => {
     const i = currentInvite();
+    if (!i) return res.json({ locked: Math.max(1, Math.ceil((lockUntil - Date.now()) / 1000)), joined, urls: lanUrls() });
     res.json({ code: i.code, ttl: Math.max(0, Math.round((i.expires - Date.now()) / 1000)), joined, urls: lanUrls() });
 });
 
@@ -189,7 +211,7 @@ const upload = multer({
             cb(null, Date.now() + "-" + name);
         }
     }),
-    limits: { fileSize: 2 * 1024 * 1024 * 1024 }
+    limits: { fileSize: 2 * 1024 * 1024 * 1024, fields: 5 }
 });
 
 // Remembers which device sent each file
@@ -197,10 +219,11 @@ const metaFile = path.join(__dirname, "meta.json");
 let meta = {};
 try { meta = JSON.parse(fs.readFileSync(metaFile, "utf8")); } catch {}
 const saveMeta = () => fs.writeFile(metaFile, JSON.stringify(meta), () => {});
-function sender(req) {
-    let name = "Device";
-    try { name = decodeURIComponent(req.headers["x-device-name"] || "") || name; } catch {}
-    return { id: String(req.headers["x-device-id"] || "").slice(0, 32), name: name.slice(0, 40) };
+// Who is asking, decided by the server from the session and never from anything the device sends
+function whoAmI(req) {
+    if (isHost(req)) return { sid: "host", name: deviceName(req.headers["user-agent"] || "") };
+    const s = sessions.get(cookieOf(req, "shalo_session"));
+    return s ? { sid: s.id, name: s.name } : null;
 }
 const displayName = name => name.replace(/^\d{13}-/, "");
 
@@ -242,6 +265,7 @@ app.use("/files", requireAuth, express.static(shared, {
 }));
 
 app.get("/api/files", requireAuth, (req, res) => {
+    const me = whoAmI(req);
     const files = fs.readdirSync(shared)
         .map(name => ({ name, stat: fs.statSync(path.join(shared, name)) }))
         .filter(f => f.stat.isFile())
@@ -251,17 +275,30 @@ app.get("/api/files", requireAuth, (req, res) => {
             name: displayName(f.name),
             size: f.stat.size,
             modified: f.stat.mtimeMs,
-            from: meta[f.name] || null,
+            from: meta[f.name] ? { name: meta[f.name].name, mine: !!me && meta[f.name].sid === me.sid } : null,
             url: "/files/" + encodeURIComponent(f.name)
         }));
     res.json(files);
 });
 
-app.post("/upload", requireAuth, sameOrigin, upload.array("files", 50), (req, res) => {
+const folderSize = () => fs.readdirSync(shared).reduce((n, f) => {
+    try { return n + fs.statSync(path.join(shared, f)).size; } catch { return n; }
+}, 0);
+const FULL = { error: "ShaLo's storage is full. Ask the host to delete some files." };
+// Refuse early, before the file is written, when the upload can't fit
+const roomCheck = (req, res, next) =>
+    folderSize() + (parseInt(req.headers["content-length"], 10) || 0) > MAX_STORAGE ? res.status(413).json(FULL) : next();
+
+app.post("/upload", requireAuth, sameOrigin, roomCheck, upload.array("files", 50), (req, res) => {
     if (!req.files || !req.files.length) {
         return res.status(400).json({ error: "Choose at least one file to send." });
     }
-    const from = sender(req);
+    // Uploads without a declared size are checked again once saved
+    if (folderSize() > MAX_STORAGE) {
+        req.files.forEach(f => fs.unlink(path.join(shared, f.filename), () => {}));
+        return res.status(413).json(FULL);
+    }
+    const from = whoAmI(req);
     req.files.forEach(f => { meta[f.filename] = from; });
     saveMeta();
     res.json({ files: req.files.map(f => ({ name: f.originalname, size: f.size })) });

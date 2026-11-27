@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Join ShaLo</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--sun:#FFE45E;--pink:#FF3D8B;--blue:#2D5BFF;--ink:#1B1240;--white:#fff;
@@ -11,7 +14,10 @@
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--sun);color:var(--ink);font:400 1.0625rem/1.5 var(--body);padding:20px}
 .box{width:min(440px,100%);text-align:center}
-h1{margin:0 0 20px;font:400 clamp(3.5rem,18vw,5.5rem)/.9 var(--display);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink)}
+.brandrow{display:flex;align-items:center;gap:clamp(10px,2.5vw,18px)}
+.logo{flex:none;width:clamp(52px,12vw,84px);height:auto;aspect-ratio:1;border:3px solid var(--ink);border-radius:22%;box-shadow:4px 4px 0 var(--ink);transform:rotate(-5deg);display:block}
+.brandrow{justify-content:center;margin-bottom:20px}
+h1{margin:0;font:400 clamp(3.5rem,18vw,5.5rem)/.9 var(--display);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink)}
 h1 .sha{color:var(--pink)} h1 .lo{color:var(--blue)}
 .card{background:var(--white);border:3px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:clamp(18px,4vw,28px)}
 h2{margin:0 0 6px;font:400 1.75rem/1.1 var(--display)}
@@ -26,7 +32,7 @@ input::placeholder{color:rgba(27,18,64,.35)}
 </head>
 <body>
 <main class="box">
-  <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
+  <div class="brandrow"><img class="logo" src="/logo.png" alt="" width="84" height="84"><h1><span class="sha">Sha</span><span class="lo">Lo</span></h1></div>
   <form class="card" id="f">
     <h2>Enter the code</h2>
     <p id="lead">On the device running ShaLo, tap <b>Add a device</b> and type the 6-digit code you see.</p>

@@ -1,947 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ShaLo</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --sun: #FFE45E;
-      --pink: #FF3D8B;
-      --blue: #2D5BFF;
-      --ink: #1B1240;
-      --white: #fff;
-      --display: "Bagel Fat One", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
-      --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    html {
-      background: var(--sun)
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--sun);
-      color: var(--ink);
-      font: 400 1.0625rem/1.5 var(--body);
-      padding: clamp(16px, 4vw, 40px)
-    }
-
-    .wrap {
-      max-width: 1080px;
-      margin: 0 auto
-    }
-
-    :focus-visible {
-      outline: 3px solid var(--ink);
-      outline-offset: 3px;
-      border-radius: 12px
-    }
-
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 14px 24px;
-      margin-bottom: clamp(20px, 4vw, 36px)
-    }
-
-    h1 {
-      margin: 0;
-      font: 400 clamp(3.5rem, 13vw, 6.25rem)/.9 var(--display);
-      letter-spacing: -.01em;
-      -webkit-text-stroke: 3px var(--ink);
-      paint-order: stroke fill;
-      text-shadow: 4px 4px 0 var(--ink)
-    }
-
-    h1 .sha {
-      color: var(--pink)
-    }
-
-    h1 .lo {
-      color: var(--blue)
-    }
-
-    .tag {
-      margin: 8px 0 0;
-      font-weight: 600;
-      max-width: 32ch
-    }
-
-    .grid {
-      display: grid;
-      gap: clamp(18px, 3vw, 32px)
-    }
-
-    @media(min-width:880px) {
-      .grid {
-        grid-template-columns: 5fr 6fr;
-        align-items: start
-      }
-    }
-
-    .card {
-      background: var(--white);
-      border: 3px solid var(--ink);
-      border-radius: 28px;
-      box-shadow: 6px 6px 0 var(--ink);
-      padding: clamp(18px, 3vw, 28px)
-    }
-
-    h2 {
-      margin: 0 0 4px;
-      font: 400 1.75rem/1.1 var(--display)
-    }
-
-    .drop {
-      border-radius: 36px 28px 40px 28px;
-      text-align: center;
-      transition: transform .2s, background .2s
-    }
-
-    .drop.over {
-      background: var(--pink);
-      transform: rotate(-1.5deg) scale(1.02)
-    }
-
-    .drop p {
-      margin: 0 auto 18px;
-      max-width: 30ch
-    }
-
-    .devices {
-      width: 100%;
-      max-width: 340px;
-      height: auto;
-      display: block;
-      margin: 10px auto 14px;
-      overflow: visible
-    }
-
-    .packet {
-      fill: var(--sun);
-      stroke: var(--ink);
-      stroke-width: 3;
-      animation: hop 1.1s .5s ease-in-out 1 both
-    }
-
-    .drop.sending .packet {
-      animation: ride .9s linear infinite
-    }
-
-    .drop.receiving .packet {
-      animation: back 1s linear 1 both
-    }
-
-    @keyframes back {
-      0% {
-        transform: translateX(92px);
-        opacity: 1
-      }
-
-      85% {
-        opacity: 1
-      }
-
-      100% {
-        transform: translateX(0);
-        opacity: 0
-      }
-    }
-
-    @keyframes hop {
-
-      0%,
-      100% {
-        transform: translate(0, 0)
-      }
-
-      40% {
-        transform: translate(46px, -26px)
-      }
-
-      70% {
-        transform: translate(92px, 0)
-      }
-
-      85% {
-        transform: translate(92px, -8px)
-      }
-    }
-
-    @keyframes ride {
-      0% {
-        transform: translateX(0);
-        opacity: 1
-      }
-
-      85% {
-        opacity: 1
-      }
-
-      100% {
-        transform: translateX(92px);
-        opacity: 0
-      }
-    }
-
-    .btn {
-      display: inline-block;
-      font: 700 1.0625rem var(--body);
-      color: var(--white);
-      background: var(--ink);
-      border: 3px solid var(--ink);
-      border-radius: 999px;
-      padding: 12px 26px;
-      cursor: pointer;
-      text-decoration: none;
-      box-shadow: 4px 4px 0 var(--blue);
-      transition: transform .12s, box-shadow .12s
-    }
-
-    .btn:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 6px 6px 0 var(--blue)
-    }
-
-    .btn:active {
-      transform: translate(3px, 3px);
-      box-shadow: 1px 1px 0 var(--blue)
-    }
-
-    .btn.sm {
-      font-size: .95rem;
-      padding: 7px 16px;
-      background: var(--blue);
-      box-shadow: 3px 3px 0 var(--ink)
-    }
-
-    .btn.sm:hover {
-      box-shadow: 5px 5px 0 var(--ink)
-    }
-
-    .btn.sm:active {
-      box-shadow: 1px 1px 0 var(--ink)
-    }
-
-    input[type=file] {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none
-    }
-
-    .queue {
-      list-style: none;
-      margin: 18px 0 0;
-      padding: 0;
-      display: grid;
-      gap: 10px;
-      text-align: left
-    }
-
-    .q {
-      background: var(--white);
-      border: 3px solid var(--ink);
-      border-radius: 16px;
-      padding: 10px 14px
-    }
-
-    .q b {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap
-    }
-
-    .bar {
-      height: 12px;
-      border: 2px solid var(--ink);
-      border-radius: 99px;
-      background: var(--white);
-      overflow: hidden;
-      margin: 6px 0 4px
-    }
-
-    .bar i {
-      display: block;
-      height: 100%;
-      width: 0;
-      background: var(--blue);
-      transition: width .15s
-    }
-
-    .q.done .bar i {
-      background: var(--pink)
-    }
-
-    .q small {
-      font-weight: 600
-    }
-
-    .q.fail {
-      background: var(--pink)
-    }
-
-    .count {
-      margin: 0 0 14px;
-      font-weight: 600
-    }
-
-    .files {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 12px
-    }
-
-    .f {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 3px solid var(--ink);
-      border-radius: 18px;
-      padding: 10px 12px
-    }
-
-    .ext {
-      flex: none;
-      min-width: 54px;
-      text-align: center;
-      font: 400 1rem var(--display);
-      border: 3px solid var(--ink);
-      border-radius: 12px;
-      padding: 6px 4px;
-      background: var(--white)
-    }
-
-    .ext.img {
-      background: var(--pink)
-    }
-
-    .ext.av {
-      background: var(--blue);
-      color: var(--white)
-    }
-
-    .ext.doc {
-      background: var(--sun)
-    }
-
-    .meta {
-      flex: 1;
-      min-width: 0
-    }
-
-    .meta b {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap
-    }
-
-    .meta small {
-      font-weight: 600
-    }
-
-    .acts.hbtns {
-      display: none
-    }
-
-    html[data-host] .acts.hbtns {
-      display: flex
-    }
-
-    .joinbtn {
-      background: var(--pink);
-      box-shadow: 3px 3px 0 var(--ink)
-    }
-
-    dialog {
-      border: 3px solid var(--ink);
-      border-radius: 28px;
-      box-shadow: 6px 6px 0 var(--ink);
-      padding: 0;
-      background: var(--white);
-      color: var(--ink);
-      width: min(700px, calc(100vw - 32px));
-      max-height: calc(100vh - 32px);
-      overflow: auto
-    }
-
-    dialog::backdrop {
-      background: rgba(27, 18, 64, .6)
-    }
-
-    .jwrap {
-      display: grid;
-      gap: 22px;
-      align-items: center;
-      padding: clamp(18px, 3vw, 30px)
-    }
-
-    @media(min-width:620px) {
-      .jwrap {
-        grid-template-columns: 260px 1fr
-      }
-    }
-
-    .qr {
-      width: min(260px, 72vw);
-      margin: 0 auto;
-      border: 3px solid var(--ink);
-      border-radius: 20px;
-      overflow: hidden;
-      background: var(--white);
-      line-height: 0
-    }
-
-    .qr:empty {
-      display: none
-    }
-
-    .qr svg {
-      width: 100%;
-      height: auto;
-      display: block
-    }
-
-    .jtext p {
-      margin: 6px 0 14px
-    }
-
-    #addrText {
-      display: block;
-      background: var(--sun);
-      border: 3px solid var(--ink);
-      border-radius: 16px;
-      padding: 8px 14px;
-      font: 700 1.35rem/1.25 var(--body);
-      user-select: all;
-      word-break: break-all;
-      margin-bottom: 14px
-    }
-
-    [hidden] {
-      display: none !important
-    }
-
-    .pin {
-      font: 400 2.5rem/1 var(--display);
-      letter-spacing: .12em;
-      margin: 0 0 6px
-    }
-
-    .jtext .jmsg {
-      min-height: 1.5em;
-      margin: 0 0 14px;
-      font-weight: 600
-    }
-
-    .link {
-      background: none;
-      border: 0;
-      padding: 0;
-      margin-top: 16px;
-      font: 600 .9rem var(--body);
-      color: var(--ink);
-      text-decoration: underline;
-      cursor: pointer
-    }
-
-    .dwrap {
-      padding: clamp(18px, 3vw, 30px)
-    }
-
-    .dsub {
-      margin: 4px 0 16px
-    }
-
-    .devlist {
-      list-style: none;
-      margin: 0 0 18px;
-      padding: 0;
-      display: grid;
-      gap: 10px
-    }
-
-    .dev {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 3px solid var(--ink);
-      border-radius: 18px;
-      padding: 10px 12px
-    }
-
-    .dot {
-      flex: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 3px solid var(--ink);
-      background: var(--white)
-    }
-
-    .dot.on {
-      background: var(--blue)
-    }
-
-    .dev .meta small {
-      display: block
-    }
-
-    @media(max-width:480px) {
-      .dev {
-        flex-wrap: wrap
-      }
-
-      .dev .btn {
-        width: 100%;
-        text-align: center
-      }
-    }
-
-    .jbtns {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap
-    }
-
-    .btn.sm.ghost {
-      background: var(--white);
-      color: var(--ink)
-    }
-
-    .nets {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px
-    }
-
-    .nets:empty {
-      display: none
-    }
-
-    .net {
-      font: 600 .9rem var(--body);
-      color: var(--ink);
-      background: var(--white);
-      border: 3px solid var(--ink);
-      border-radius: 999px;
-      padding: 4px 12px;
-      cursor: pointer
-    }
-
-    .net[aria-pressed=true] {
-      background: var(--ink);
-      color: var(--white)
-    }
-
-    .empty {
-      border: 3px dashed var(--ink);
-      border-radius: 18px;
-      padding: 22px;
-      font-weight: 600
-    }
-
-    .empty strong {
-      display: block;
-      font: 400 1.25rem var(--display);
-      margin-bottom: 4px
-    }
-
-    .acts {
-      display: flex;
-      gap: 8px;
-      flex: none
-    }
-
-    .viewer {
-      width: min(1000px, calc(100vw - 24px))
-    }
-
-    .vbar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px 14px;
-      padding: 12px 16px;
-      border-bottom: 3px solid var(--ink)
-    }
-
-    .vbar b {
-      flex: 1;
-      min-width: 140px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap
-    }
-
-    .vbody {
-      display: grid;
-      place-items: center;
-      background: var(--ink);
-      min-height: 40vh;
-      max-height: calc(100vh - 150px);
-      overflow: auto
-    }
-
-    .vbody img,
-    .vbody video {
-      max-width: 100%;
-      max-height: calc(100vh - 160px);
-      object-fit: contain;
-      display: block
-    }
-
-    .vbody audio {
-      width: min(480px, 90%);
-      margin: 40px 0
-    }
-
-    .vbody iframe {
-      width: 100%;
-      height: calc(100vh - 160px);
-      border: 0;
-      background: var(--white)
-    }
-
-    @media(max-width:480px) {
-      .f {
-        flex-wrap: wrap
-      }
-
-      .acts {
-        width: 100%
-      }
-
-      .acts .btn {
-        flex: 1;
-        text-align: center
-      }
-    }
-
-    @media(prefers-reduced-motion:reduce) {
-      * {
-        animation: none !important;
-        transition: none !important
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShaLo</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sun:#FFE45E; --pink:#FF3D8B; --blue:#2D5BFF; --ink:#1B1240; --white:#fff;
+  --display:"Bagel Fat One","Arial Rounded MT Bold",ui-rounded,system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--sun)}
+body{margin:0;min-height:100vh;background:var(--sun);color:var(--ink);font:400 1.0625rem/1.5 var(--body);padding:clamp(16px,4vw,40px)}
+.wrap{max-width:1080px;margin:0 auto}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:12px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px;margin-bottom:clamp(20px,4vw,36px)}
+.brandrow{display:flex;align-items:center;gap:clamp(10px,2.5vw,18px)}
+.logo{flex:none;width:clamp(52px,12vw,84px);height:auto;aspect-ratio:1;border:3px solid var(--ink);border-radius:22%;box-shadow:4px 4px 0 var(--ink);transform:rotate(-5deg);display:block}
+h1{margin:0;font:400 clamp(3.5rem,13vw,6.25rem)/.9 var(--display);letter-spacing:-.01em;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink)}
+h1 .sha{color:var(--pink)} h1 .lo{color:var(--blue)}
+.tag{margin:8px 0 0;font-weight:600;max-width:32ch}
+
+.grid{display:grid;gap:clamp(18px,3vw,32px)}
+@media(min-width:880px){.grid{grid-template-columns:5fr 6fr;align-items:start}}
+.card{background:var(--white);border:3px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:clamp(18px,3vw,28px)}
+h2{margin:0 0 4px;font:400 1.75rem/1.1 var(--display)}
+
+.drop{border-radius:36px 28px 40px 28px;text-align:center;transition:transform .2s,background .2s}
+.drop.over{background:var(--pink);transform:rotate(-1.5deg) scale(1.02)}
+.drop p{margin:0 auto 18px;max-width:30ch}
+.devices{width:100%;max-width:340px;height:auto;display:block;margin:10px auto 14px;overflow:visible}
+.packet{fill:var(--sun);stroke:var(--ink);stroke-width:3;animation:hop 1.1s .5s ease-in-out 1 both}
+.drop.sending .packet{animation:ride .9s linear infinite}
+.drop.receiving .packet{animation:back 1s linear 1 both}
+@keyframes back{0%{transform:translateX(92px);opacity:1}85%{opacity:1}100%{transform:translateX(0);opacity:0}}
+@keyframes hop{0%,100%{transform:translate(0,0)}40%{transform:translate(46px,-26px)}70%{transform:translate(92px,0)}85%{transform:translate(92px,-8px)}}
+@keyframes ride{0%{transform:translateX(0);opacity:1}85%{opacity:1}100%{transform:translateX(92px);opacity:0}}
+
+.btn{display:inline-block;font:700 1.0625rem var(--body);color:var(--white);background:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:12px 26px;cursor:pointer;text-decoration:none;box-shadow:4px 4px 0 var(--blue);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--blue)}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--blue)}
+.btn.sm{font-size:.95rem;padding:7px 16px;background:var(--blue);box-shadow:3px 3px 0 var(--ink)}
+.btn.sm:hover{box-shadow:5px 5px 0 var(--ink)}
+.btn.sm:active{box-shadow:1px 1px 0 var(--ink)}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+.queue{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px;text-align:left}
+.q{background:var(--white);border:3px solid var(--ink);border-radius:16px;padding:10px 14px}
+.q b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:12px;border:2px solid var(--ink);border-radius:99px;background:var(--white);overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .15s}
+.q.done .bar i{background:var(--pink)}
+.q small{font-weight:600}
+.q.fail{background:var(--pink)}
+
+.count{margin:0 0 14px;font-weight:600}
+.files{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.f{display:flex;align-items:center;gap:12px;border:3px solid var(--ink);border-radius:18px;padding:10px 12px}
+.ext{flex:none;min-width:54px;text-align:center;font:400 1rem var(--display);border:3px solid var(--ink);border-radius:12px;padding:6px 4px;background:var(--white)}
+.ext.img{background:var(--pink)} .ext.av{background:var(--blue);color:var(--white)} .ext.doc{background:var(--sun)}
+.meta{flex:1;min-width:0}
+.meta b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta small{font-weight:600}
+.acts.hbtns{display:none}html[data-host] .acts.hbtns{display:flex}
+.joinbtn{background:var(--pink);box-shadow:3px 3px 0 var(--ink)}
+dialog{border:3px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:0;background:var(--white);color:var(--ink);width:min(700px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
+dialog::backdrop{background:rgba(27,18,64,.6)}
+.jwrap{display:grid;gap:22px;align-items:center;padding:clamp(18px,3vw,30px)}
+@media(min-width:620px){.jwrap{grid-template-columns:260px 1fr}}
+.qr{width:min(260px,72vw);margin:0 auto;border:3px solid var(--ink);border-radius:20px;overflow:hidden;background:var(--white);line-height:0}
+.qr:empty{display:none}
+.qr svg{width:100%;height:auto;display:block}
+.jtext p{margin:6px 0 14px}
+#addrText{display:block;background:var(--sun);border:3px solid var(--ink);border-radius:16px;padding:8px 14px;font:700 1.35rem/1.25 var(--body);user-select:all;word-break:break-all;margin-bottom:14px}
+[hidden]{display:none!important}
+.pin{font:400 2.5rem/1 var(--display);letter-spacing:.12em;margin:0 0 6px}
+.jtext .jmsg{min-height:1.5em;margin:0 0 14px;font-weight:600}
+.link{background:none;border:0;padding:0;margin-top:16px;font:600 .9rem var(--body);color:var(--ink);text-decoration:underline;cursor:pointer}
+.dwrap{padding:clamp(18px,3vw,30px)}
+.dsub{margin:4px 0 16px}
+.devlist{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:10px}
+.dev{display:flex;align-items:center;gap:12px;border:3px solid var(--ink);border-radius:18px;padding:10px 12px}
+.dot{flex:none;width:16px;height:16px;border-radius:50%;border:3px solid var(--ink);background:var(--white)}
+.dot.on{background:var(--blue)}
+.dev .meta small{display:block}
+@media(max-width:480px){.dev{flex-wrap:wrap}.dev .btn{width:100%;text-align:center}}
+.jbtns{display:flex;gap:12px;flex-wrap:wrap}
+.btn.sm.ghost{background:var(--white);color:var(--ink)}
+.nets{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.nets:empty{display:none}
+.net{font:600 .9rem var(--body);color:var(--ink);background:var(--white);border:3px solid var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}
+.net[aria-pressed=true]{background:var(--ink);color:var(--white)}
+.empty{border:3px dashed var(--ink);border-radius:18px;padding:22px;font-weight:600}
+.empty strong{display:block;font:400 1.25rem var(--display);margin-bottom:4px}
+.acts{display:flex;gap:8px;flex:none}
+.viewer{width:min(1000px,calc(100vw - 24px))}
+.vbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 16px;border-bottom:3px solid var(--ink)}
+.vbar b{flex:1;min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vbody{display:grid;place-items:center;background:var(--ink);min-height:40vh;max-height:calc(100vh - 150px);overflow:auto}
+.vbody img,.vbody video{max-width:100%;max-height:calc(100vh - 160px);object-fit:contain;display:block}
+.vbody audio{width:min(480px,90%);margin:40px 0}
+.vbody iframe{width:100%;height:calc(100vh - 160px);border:0;background:var(--white)}
+@media(max-width:480px){.f{flex-wrap:wrap}.acts{width:100%}.acts .btn{flex:1;text-align:center}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
-
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
-        <p class="tag">Send files both ways between any devices on this Wi-Fi.</p>
-      </div>
-      <div class="acts hbtns"><button class="btn sm ghost" id="devbtn" type="button">Devices</button><button
-          class="btn sm joinbtn" id="open" type="button">Add a device</button></div>
-    </header>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brandrow"><img class="logo" src="/logo.png" alt="" width="84" height="84"><h1><span class="sha">Sha</span><span class="lo">Lo</span></h1></div>
+      <p class="tag">Send files both ways between any devices on this Wi-Fi.</p>
+    </div>
+    <div class="acts hbtns"><button class="btn sm ghost" id="devbtn" type="button">Devices</button><button class="btn sm joinbtn" id="open" type="button">Add a device</button></div>
+  </header>
 
-    <div class="grid">
-      <section class="card drop" id="drop" aria-labelledby="dropH">
-        <h2 id="dropH">Send a file</h2>
-        <svg class="devices" viewBox="0 0 320 142" role="img"
-          aria-label="This device sharing with other devices in both directions">
-          <rect x="14" y="14" width="50" height="92" rx="12" fill="#FF3D8B" stroke="#1B1240" stroke-width="3" />
-          <rect x="23" y="26" width="32" height="56" rx="5" fill="#fff" stroke="#1B1240" stroke-width="2" />
-          <rect x="224" y="26" width="84" height="58" rx="8" fill="#2D5BFF" stroke="#1B1240" stroke-width="3" />
-          <rect x="233" y="35" width="66" height="40" rx="4" fill="#fff" stroke="#1B1240" stroke-width="2" />
-          <rect x="210" y="88" width="112" height="12" rx="6" fill="#1B1240" />
-          <path d="M84 60H204" stroke="#1B1240" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"
-            fill="none" />
-          <path d="M86 50L76 60l10 10M202 50l10 10-10 10" stroke="#1B1240" stroke-width="4" stroke-linecap="round"
-            stroke-linejoin="round" fill="none" />
-          <circle class="packet" cx="104" cy="60" r="9" />
-          <text x="39" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13"
-            font-weight="700" fill="#1B1240">This device</text>
-          <text x="266" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13"
-            font-weight="700" fill="#1B1240">Other devices</text>
-        </svg>
-        <p>Drop files anywhere on this card, or pick them from your device.</p>
-        <label class="btn" id="pick" tabindex="0" role="button">Send files<input type="file" id="file" multiple></label>
-        <ul class="queue" id="queue" aria-live="polite"></ul>
-      </section>
+  <div class="grid">
+    <section class="card drop" id="drop" aria-labelledby="dropH">
+      <h2 id="dropH">Send a file</h2>
+      <svg class="devices" viewBox="0 0 320 142" role="img" aria-label="This device sharing with other devices in both directions">
+        <rect x="14" y="14" width="50" height="92" rx="12" fill="#FF3D8B" stroke="#1B1240" stroke-width="3"/>
+        <rect x="23" y="26" width="32" height="56" rx="5" fill="#fff" stroke="#1B1240" stroke-width="2"/>
+        <rect x="224" y="26" width="84" height="58" rx="8" fill="#2D5BFF" stroke="#1B1240" stroke-width="3"/>
+        <rect x="233" y="35" width="66" height="40" rx="4" fill="#fff" stroke="#1B1240" stroke-width="2"/>
+        <rect x="210" y="88" width="112" height="12" rx="6" fill="#1B1240"/>
+        <path d="M84 60H204" stroke="#1B1240" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" fill="none"/>
+        <path d="M86 50L76 60l10 10M202 50l10 10-10 10" stroke="#1B1240" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle class="packet" cx="104" cy="60" r="9"/>
+        <text x="39" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">This device</text>
+        <text x="266" y="130" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="#1B1240">Other devices</text>
+      </svg>
+      <p>Drop files anywhere on this card, or pick them from your device.</p>
+      <label class="btn" id="pick" tabindex="0" role="button">Send files<input type="file" id="file" multiple></label>
+      <ul class="queue" id="queue" aria-live="polite"></ul>
+    </section>
 
-      <section class="card folder" aria-labelledby="listH">
-        <h2 id="listH">Shared folder</h2>
-        <p class="count" id="count">Checking the shared folder…</p>
-        <ul class="files" id="files"></ul>
-      </section>
+    <section class="card folder" aria-labelledby="listH">
+      <h2 id="listH">Shared folder</h2>
+      <p class="count" id="count">Checking the shared folder…</p>
+      <ul class="files" id="files"></ul>
+    </section>
 
+  </div>
+</div>
+
+<dialog id="view" class="viewer" aria-labelledby="viewT">
+  <div class="vbar">
+    <b id="viewT"></b>
+    <div class="acts">
+      <button class="btn sm ghost" id="vprev" type="button" aria-label="Previous file">&lsaquo;</button>
+      <button class="btn sm ghost" id="vnext" type="button" aria-label="Next file">&rsaquo;</button>
+      <a class="btn sm ghost" id="vnew" target="_blank" rel="noopener">New tab</a>
+      <a class="btn sm" id="vdl">Download</a>
+      <button class="btn sm ghost" id="vclose" type="button">Close</button>
     </div>
   </div>
+  <div class="vbody" id="vbody"></div>
+</dialog>
 
-  <dialog id="view" class="viewer" aria-labelledby="viewT">
-    <div class="vbar">
-      <b id="viewT"></b>
-      <div class="acts">
-        <button class="btn sm ghost" id="vprev" type="button" aria-label="Previous file">&lsaquo;</button>
-        <button class="btn sm ghost" id="vnext" type="button" aria-label="Next file">&rsaquo;</button>
-        <a class="btn sm ghost" id="vnew" target="_blank" rel="noopener">New tab</a>
-        <a class="btn sm" id="vdl">Download</a>
-        <button class="btn sm ghost" id="vclose" type="button">Close</button>
-      </div>
+<dialog id="devs" aria-labelledby="devsT">
+  <div class="dwrap">
+    <h2 id="devsT">Connected devices</h2>
+    <p class="dsub">Devices that joined ShaLo with a code. Online means active in the last few seconds.</p>
+    <ul class="devlist" id="devlist"></ul>
+    <div class="jbtns"><button class="btn sm ghost" id="signall" type="button">Sign out all devices</button><button class="btn sm" id="devclose" type="button">Done</button></div>
+  </div>
+</dialog>
+
+<dialog id="join" aria-labelledby="joinH">
+  <div class="jwrap">
+    <div class="qr" id="qr"></div>
+    <div class="jtext">
+      <h2 id="joinH">Add a device</h2>
+      <p>Scan the code with a phone camera. Or open this address on the other device and type the 6-digit code.</p>
+      <code id="addrText"></code>
+      <div class="pin" id="pin" aria-label="Join code"></div>
+      <p class="jmsg" id="jmsg" role="status"></p>
+      <div class="jbtns"><button class="btn sm" id="copy" type="button">Copy address</button><button class="btn sm ghost" id="close" type="button">Done</button></div>
+      <div class="nets" id="nets" role="group" aria-label="Choose a network address"></div>
     </div>
-    <div class="vbody" id="vbody"></div>
-  </dialog>
+  </div>
+</dialog>
 
-  <dialog id="devs" aria-labelledby="devsT">
-    <div class="dwrap">
-      <h2 id="devsT">Connected devices</h2>
-      <p class="dsub">Devices that joined ShaLo with a code. Online means active in the last few seconds.</p>
-      <ul class="devlist" id="devlist"></ul>
-      <div class="jbtns"><button class="btn sm ghost" id="signall" type="button">Sign out all devices</button><button
-          class="btn sm" id="devclose" type="button">Done</button></div>
-    </div>
-  </dialog>
+<script src="/qr.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const myName = (() => { const u = navigator.userAgent; return /iPhone/.test(u) ? "iPhone" : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? "iPad" : /Android/.test(u) ? "Android" : /Windows/.test(u) ? "Windows PC" : /Mac/.test(u) ? "Mac" : /CrOS/.test(u) ? "Chromebook" : /Linux/.test(u) ? "Linux PC" : "Device"; })();
+const drop = $("#drop"), queue = $("#queue"), list = $("#files"), input = $("#file");
+let sig = "", active = 0;
 
-  <dialog id="join" aria-labelledby="joinH">
-    <div class="jwrap">
-      <div class="qr" id="qr"></div>
-      <div class="jtext">
-        <h2 id="joinH">Add a device</h2>
-        <p>Scan the code with a phone camera. Or open this address on the other device and type the 6-digit code.</p>
-        <code id="addrText"></code>
-        <div class="pin" id="pin" aria-label="Join code"></div>
-        <p class="jmsg" id="jmsg" role="status"></p>
-        <div class="jbtns"><button class="btn sm" id="copy" type="button">Copy address</button><button
-            class="btn sm ghost" id="close" type="button">Done</button></div>
-        <div class="nets" id="nets" role="group" aria-label="Choose a network address"></div>
-      </div>
-    </div>
-  </dialog>
+const size = b => { if (b < 1024) return b + " B"; const u = ["KB","MB","GB"]; let i = -1; do { b /= 1024; i++; } while (b >= 1024 && i < 2); return b.toFixed(b < 10 ? 1 : 0) + " " + u[i]; };
+const ago = t => { const s = (Date.now() - t) / 1000; return s < 45 ? "just now" : s < 3600 ? Math.round(s/60) + " min ago" : s < 86400 ? Math.round(s/3600) + " hr ago" : new Date(t).toLocaleDateString(); };
+const kind = e => /^(jpe?g|png|gif|webp|heic|svg)$/.test(e) ? "img" : /^(mp4|mov|mkv|webm|mp3|wav|m4a|aac)$/.test(e) ? "av" : /^(pdf|docx?|xlsx?|pptx?|txt|md|csv)$/.test(e) ? "doc" : "";
 
-  <script src="/qr.js"></script>
-  <script>
-    const $ = s => document.querySelector(s);
-    // This device's identity, so every file shows who sent it
-    const me = (() => { try { let i = localStorage.getItem("shalo-id"); if (!i) { i = Math.random().toString(36).slice(2, 10); localStorage.setItem("shalo-id", i); } return i; } catch { return "anon"; } })();
-    const myName = (() => { const u = navigator.userAgent; return /iPhone/.test(u) ? "iPhone" : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? "iPad" : /Android/.test(u) ? "Android" : /Windows/.test(u) ? "Windows PC" : /Mac/.test(u) ? "Mac" : /CrOS/.test(u) ? "Chromebook" : /Linux/.test(u) ? "Linux PC" : "Device"; })();
-    const drop = $("#drop"), queue = $("#queue"), list = $("#files"), input = $("#file");
-    let sig = "", active = 0;
+function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
 
-    const size = b => { if (b < 1024) return b + " B"; const u = ["KB", "MB", "GB"]; let i = -1; do { b /= 1024; i++; } while (b >= 1024 && i < 2); return b.toFixed(b < 10 ? 1 : 0) + " " + u[i]; };
-    const ago = t => { const s = (Date.now() - t) / 1000; return s < 45 ? "just now" : s < 3600 ? Math.round(s / 60) + " min ago" : s < 86400 ? Math.round(s / 3600) + " hr ago" : new Date(t).toLocaleDateString(); };
-    const kind = e => /^(jpe?g|png|gif|webp|heic|svg)$/.test(e) ? "img" : /^(mp4|mov|mkv|webm|mp3|wav|m4a|aac)$/.test(e) ? "av" : /^(pdf|docx?|xlsx?|pptx?|txt|md|csv)$/.test(e) ? "doc" : "";
+// What can open in the browser (the server only allows these same types)
+const VIEW = { image: /\.(png|jpe?g|gif|webp|avif|bmp)$/i, video: /\.(mp4|m4v|webm|mov)$/i, audio: /\.(mp3|wav|m4a|ogg)$/i, pdf: /\.pdf$/i, text: /\.(txt|md|csv|json|log)$/i };
+const viewKind = n => Object.keys(VIEW).find(k => VIEW[k].test(n)) || "";
+let lastFiles = [], viewId = "";
+const viewer = $("#view");
+const viewables = () => lastFiles.filter(f => viewKind(f.name));
+function openViewer(id) {
+  const list = viewables(), f = list.find(x => x.id === id) || list[0];
+  if (!f) return;
+  viewId = f.id;
+  const src = "/view/" + encodeURIComponent(f.id), k = viewKind(f.name);
+  let n;
+  if (k === "image") { n = el("img"); n.alt = f.name; }
+  else if (k === "video" || k === "audio") { n = el(k); n.controls = true; n.playsInline = true; }
+  else { n = el("iframe"); n.title = f.name; }
+  n.src = src;
+  $("#vbody").replaceChildren(n);
+  $("#viewT").textContent = f.name;
+  $("#vnew").href = src; $("#vdl").href = f.url;
+  $("#vprev").hidden = $("#vnext").hidden = list.length < 2;
+  if (!viewer.open) viewer.showModal();
+}
+function step(d) {
+  const list = viewables(); if (list.length < 2) return;
+  const i = list.findIndex(x => x.id === viewId);
+  openViewer(list[(i + d + list.length) % list.length].id);
+}
+$("#vprev").addEventListener("click", () => step(-1));
+$("#vnext").addEventListener("click", () => step(1));
+$("#vclose").addEventListener("click", () => viewer.close());
+viewer.addEventListener("click", e => { if (e.target === viewer) viewer.close(); });
+viewer.addEventListener("keydown", e => { if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
+viewer.addEventListener("close", () => $("#vbody").replaceChildren());   // also stops video and audio
 
-    function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+// Connected devices (host only; the server tells the page who the host is)
+const isHostPage = document.documentElement.hasAttribute("data-host");
+const devsDlg = $("#devs");
+function renderDevices(list) {
+  $("#devbtn").textContent = "Devices" + (list.length ? " (" + list.length + ")" : "");
+  if (!devsDlg.open) return;
+  const ul = $("#devlist"); ul.replaceChildren();
+  if (!list.length) {
+    const e = el("li", "empty"); e.append(el("strong", "", "No devices yet"), "Tap Add a device to invite one.");
+    ul.append(e); return;
+  }
+  list.forEach(d => {
+    const li = el("li", "dev"), m = el("div", "meta"), b = el("button", "btn sm ghost", "Sign out");
+    const dot = el("span", "dot" + (d.online ? " on" : "")); dot.setAttribute("aria-hidden", "true");
+    m.append(el("b", "", d.name), el("small", "", (d.online ? "Online" : "Last seen " + ago(d.lastSeen)) + " · " + d.ip + " · joined " + ago(d.joinedAt)));
+    b.type = "button"; b.setAttribute("aria-label", "Sign out " + d.name + " " + d.ip);
+    b.addEventListener("click", async () => { await fetch("/api/devices/" + d.id, { method: "DELETE" }); refreshDevices(); });
+    li.append(dot, m, b); ul.append(li);
+  });
+}
+async function refreshDevices() {
+  if (!isHostPage) return;
+  try { const r = await fetch("/api/devices"); if (r.ok) renderDevices(await r.json()); } catch {}
+}
+$("#devbtn").addEventListener("click", async () => { devsDlg.showModal(); await refreshDevices(); });
+$("#devclose").addEventListener("click", () => devsDlg.close());
+devsDlg.addEventListener("click", e => { if (e.target === devsDlg) devsDlg.close(); });
+$("#signall").addEventListener("click", async () => { await fetch("/api/revoke", { method: "POST" }); refreshDevices(); });
+// A joined device tells ShaLo what to call it
+if (!isHostPage) fetch("/api/hello", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: myName }) }).catch(() => {});
 
-    // What can open in the browser (the server only allows these same types)
-    const VIEW = { image: /\.(png|jpe?g|gif|webp|avif|bmp)$/i, video: /\.(mp4|m4v|webm|mov)$/i, audio: /\.(mp3|wav|m4a|ogg)$/i, pdf: /\.pdf$/i, text: /\.(txt|md|csv|json|log)$/i };
-    const viewKind = n => Object.keys(VIEW).find(k => VIEW[k].test(n)) || "";
-    let lastFiles = [], viewId = "";
-    const viewer = $("#view");
-    const viewables = () => lastFiles.filter(f => viewKind(f.name));
-    function openViewer(id) {
-      const list = viewables(), f = list.find(x => x.id === id) || list[0];
-      if (!f) return;
-      viewId = f.id;
-      const src = "/view/" + encodeURIComponent(f.id), k = viewKind(f.name);
-      let n;
-      if (k === "image") { n = el("img"); n.alt = f.name; }
-      else if (k === "video" || k === "audio") { n = el(k); n.controls = true; n.playsInline = true; }
-      else { n = el("iframe"); n.title = f.name; }
-      n.src = src;
-      $("#vbody").replaceChildren(n);
-      $("#viewT").textContent = f.name;
-      $("#vnew").href = src; $("#vdl").href = f.url;
-      $("#vprev").hidden = $("#vnext").hidden = list.length < 2;
-      if (!viewer.open) viewer.showModal();
-    }
-    function step(d) {
-      const list = viewables(); if (list.length < 2) return;
-      const i = list.findIndex(x => x.id === viewId);
-      openViewer(list[(i + d + list.length) % list.length].id);
-    }
-    $("#vprev").addEventListener("click", () => step(-1));
-    $("#vnext").addEventListener("click", () => step(1));
-    $("#vclose").addEventListener("click", () => viewer.close());
-    viewer.addEventListener("click", e => { if (e.target === viewer) viewer.close(); });
-    viewer.addEventListener("keydown", e => { if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
-    viewer.addEventListener("close", () => $("#vbody").replaceChildren());   // also stops video and audio
-
-    // Connected devices (host only; the server tells the page who the host is)
-    const isHostPage = document.documentElement.hasAttribute("data-host");
-    const devsDlg = $("#devs");
-    function renderDevices(list) {
-      $("#devbtn").textContent = "Devices" + (list.length ? " (" + list.length + ")" : "");
-      if (!devsDlg.open) return;
-      const ul = $("#devlist"); ul.replaceChildren();
-      if (!list.length) {
-        const e = el("li", "empty"); e.append(el("strong", "", "No devices yet"), "Tap Add a device to invite one.");
-        ul.append(e); return;
+async function refresh() {
+  try {
+    const res = await fetch("/api/files");
+    if (res.status === 401) return location.reload();
+    const files = await res.json(); lastFiles = files;
+    const next = files.map(f => f.id + f.size).join("|");
+    $("#count").textContent = files.length ? files.length + (files.length === 1 ? " file" : " files") + " shared" : "";
+    if (next !== sig) {
+      sig = next; list.replaceChildren();
+      if (!files.length) {
+        const e = el("li", "empty"); e.append(el("strong", "", "Nothing here yet"), "Send a file from any device on this Wi-Fi and it shows up here.");
+        list.append(e);
       }
-      list.forEach(d => {
-        const li = el("li", "dev"), m = el("div", "meta"), b = el("button", "btn sm ghost", "Sign out");
-        const dot = el("span", "dot" + (d.online ? " on" : "")); dot.setAttribute("aria-hidden", "true");
-        m.append(el("b", "", d.name), el("small", "", (d.online ? "Online" : "Last seen " + ago(d.lastSeen)) + " · " + d.ip + " · joined " + ago(d.joinedAt)));
-        b.type = "button"; b.setAttribute("aria-label", "Sign out " + d.name + " " + d.ip);
-        b.addEventListener("click", async () => { await fetch("/api/devices/" + d.id, { method: "DELETE" }); refreshDevices(); });
-        li.append(dot, m, b); ul.append(li);
-      });
-    }
-    async function refreshDevices() {
-      if (!isHostPage) return;
-      try { const r = await fetch("/api/devices"); if (r.ok) renderDevices(await r.json()); } catch { }
-    }
-    $("#devbtn").addEventListener("click", async () => { devsDlg.showModal(); await refreshDevices(); });
-    $("#devclose").addEventListener("click", () => devsDlg.close());
-    devsDlg.addEventListener("click", e => { if (e.target === devsDlg) devsDlg.close(); });
-    $("#signall").addEventListener("click", async () => { await fetch("/api/revoke", { method: "POST" }); refreshDevices(); });
-    // A joined device tells ShaLo what to call it
-    if (!isHostPage) fetch("/api/hello", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: myName }) }).catch(() => { });
-
-    async function refresh() {
-      try {
-        const res = await fetch("/api/files");
-        if (res.status === 401) return location.reload();
-        const files = await res.json(); lastFiles = files;
-        const next = files.map(f => f.id + f.size).join("|");
-        $("#count").textContent = files.length ? files.length + (files.length === 1 ? " file" : " files") + " shared" : "";
-        if (next !== sig) {
-          sig = next; list.replaceChildren();
-          if (!files.length) {
-            const e = el("li", "empty"); e.append(el("strong", "", "Nothing here yet"), "Send a file from any device on this Wi-Fi and it shows up here.");
-            list.append(e);
-          }
-          files.forEach(f => {
-            const ext = (f.name.split(".").pop() || "").toLowerCase().slice(0, 4);
-            const li = el("li", "f"), m = el("div", "meta"), when = el("small", "when", ""), a = el("a", "btn sm", "Download"), acts = el("div", "acts");
-            when.dataset.t = f.modified;
-            when.dataset.s = size(f.size) + " · " + (f.from ? (f.from.id === me ? "from you" : "from " + f.from.name) : "added on the host device");
-            when.textContent = when.dataset.s + " · " + ago(f.modified);
-            m.append(el("b", "", f.name), when);
-            a.href = f.url; a.addEventListener("click", () => { drop.classList.add("receiving"); setTimeout(() => drop.classList.remove("receiving"), 1100); }); a.setAttribute("aria-label", "Download " + f.name);
-            if (viewKind(f.name)) {
-              const o = el("button", "btn sm ghost", "Open"); o.type = "button"; o.setAttribute("aria-label", "Open " + f.name);
-              o.addEventListener("click", () => openViewer(f.id)); acts.append(o);
-            }
-            acts.append(a);
-            li.append(el("span", "ext " + kind(ext), f.name.includes(".") ? "." + ext : "file"), m, acts);
-            list.append(li);
-          });
-        } else {
-          document.querySelectorAll(".when").forEach(w => w.textContent = w.dataset.s + " · " + ago(+w.dataset.t));
+      files.forEach(f => {
+        const ext = (f.name.split(".").pop() || "").toLowerCase().slice(0, 4);
+        const li = el("li", "f"), m = el("div", "meta"), when = el("small", "when", ""), a = el("a", "btn sm", "Download"), acts = el("div", "acts");
+        when.dataset.t = f.modified;
+        when.dataset.s = size(f.size) + " · " + (f.from ? (f.from.mine ? "from you" : "from " + f.from.name) : "added on the host device");
+        when.textContent = when.dataset.s + " · " + ago(f.modified);
+        m.append(el("b", "", f.name), when);
+        a.href = f.url; a.addEventListener("click", () => { drop.classList.add("receiving"); setTimeout(() => drop.classList.remove("receiving"), 1100); }); a.setAttribute("aria-label", "Download " + f.name);
+        if (viewKind(f.name)) {
+          const o = el("button", "btn sm ghost", "Open"); o.type = "button"; o.setAttribute("aria-label", "Open " + f.name);
+          o.addEventListener("click", () => openViewer(f.id)); acts.append(o);
         }
-      } catch { $("#count").textContent = "Can't reach ShaLo. Check that it's still running on the host device."; }
-    }
-
-    function send(file) {
-      const q = el("li", "q"), name = el("b", "", file.name), bar = el("div", "bar"), fill = el("i"), st = el("small", "", "Sending…");
-      bar.append(fill); q.append(name, bar, st); queue.prepend(q);
-      active++; drop.classList.add("sending");
-      const fd = new FormData(); fd.append("files", file);
-      const x = new XMLHttpRequest(); x.open("POST", "/upload"); x.setRequestHeader("X-Device-Id", me); x.setRequestHeader("X-Device-Name", encodeURIComponent(myName));
-      x.upload.onprogress = e => { if (e.lengthComputable) fill.style.width = (e.loaded / e.total * 100) + "%"; };
-      const end = () => { if (--active === 0) drop.classList.remove("sending"); };
-      x.onload = () => {
-        end();
-        if (x.status === 200) { fill.style.width = "100%"; q.classList.add("done"); st.textContent = "Sent · " + size(file.size); refresh(); setTimeout(() => q.remove(), 4000); }
-        else { if (x.status === 401) setTimeout(() => location.reload(), 1500); let msg = "Upload failed. Try again."; try { msg = JSON.parse(x.responseText).error; } catch { } q.classList.add("fail"); st.textContent = msg; }
-      };
-      x.onerror = () => { end(); q.classList.add("fail"); st.textContent = "Lost the connection to ShaLo. Try again."; };
-      x.send(fd);
-    }
-    const sendAll = files => [...files].forEach(send);
-
-    input.addEventListener("change", () => { sendAll(input.files); input.value = ""; });
-    $("#pick").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
-    ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
-    ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); if (t === "drop" || !drop.contains(e.relatedTarget)) drop.classList.remove("over"); }));
-    drop.addEventListener("drop", e => sendAll(e.dataTransfer.files));
-    ["dragover", "drop"].forEach(t => window.addEventListener(t, e => e.preventDefault()));
-
-    let urls = [], pick = 0, inv = null, note = "", poll = 0, tick = 0;
-    function copyText(t) {
-      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
-      const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0";
-      document.body.append(a); a.select(); try { document.execCommand("copy"); } catch { } a.remove();
-      return Promise.resolve();
-    }
-    function renderJoin() {
-      const nets = $("#nets"); nets.replaceChildren();
-      if (!urls.length || !inv) {
-        $("#qr").replaceChildren(); $("#pin").textContent = ""; $("#copy").hidden = true;
-        $("#addrText").textContent = "No Wi-Fi address found";
-        return;
-      }
-      if (pick >= urls.length) pick = 0;
-      const base = urls[pick];
-      // The code is part of the QR; it works once and expires in 2 minutes
-      $("#qr").innerHTML = QR.svg(base + "/join?code=" + inv.code, "QR code for joining ShaLo");
-      $("#addrText").textContent = base.replace("http://", "");
-      $("#pin").textContent = inv.code.slice(0, 3) + " " + inv.code.slice(3);
-      $("#copy").hidden = false;
-      if (urls.length > 1) urls.forEach((x, i) => {
-        const b = el("button", "net", x.replace("http://", "")); b.type = "button"; b.setAttribute("aria-pressed", i === pick);
-        b.onclick = () => { pick = i; renderJoin(); };
-        nets.append(b);
+        acts.append(a);
+        li.append(el("span", "ext " + kind(ext), f.name.includes(".") ? "." + ext : "file"), m, acts);
+        list.append(li);
       });
+    } else {
+      document.querySelectorAll(".when").forEach(w => w.textContent = w.dataset.s + " · " + ago(+w.dataset.t));
     }
-    function status() {
-      if (!inv) return;
-      const s = Math.max(0, Math.round((inv.expiresAt - Date.now()) / 1000));
-      $("#jmsg").textContent = note || "Works once. Expires in " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
-    }
-    function say(t) { note = t; status(); setTimeout(() => { note = ""; status(); }, 4000); }
-    async function loadInvite() {
-      const r = await fetch("/api/invite");
-      if (!r.ok) throw new Error("no invite");
-      const d = await r.json();
-      urls = d.urls || [];
-      if (inv && d.joined > inv.joined) say("A device just joined. Here's a fresh code.");
-      const changed = !inv || inv.code !== d.code;
-      inv = { code: d.code, joined: d.joined, expiresAt: Date.now() + d.ttl * 1000 };
-      if (changed) renderJoin();
-      status();
-    }
-    $("#copy").addEventListener("click", () => {
-      const b = $("#copy"); copyText(urls[pick]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy address", 1500); });
-    });
-    const dlg = $("#join");
-    // A fresh code is made when the window opens and deleted when it closes
-    $("#open").addEventListener("click", async () => {
-      if (dlg.open) return;
-      inv = null; pick = 0; note = "";
-      try { await loadInvite(); } catch { urls = []; }
-      renderJoin(); status(); dlg.showModal();
-      poll = setInterval(() => loadInvite().catch(() => { }), 2000);
-      tick = setInterval(status, 1000);
-    });
-    dlg.addEventListener("close", () => {
-      clearInterval(poll); clearInterval(tick); inv = null; note = "";
-      fetch("/api/invite", { method: "DELETE" }).catch(() => { });
-      ["#qr", "#nets"].forEach(s => $(s).replaceChildren());
-      ["#addrText", "#pin", "#jmsg"].forEach(s => $(s).textContent = "");
-    });
-    $("#close").addEventListener("click", () => dlg.close());
-    dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  } catch { $("#count").textContent = "Can't reach ShaLo. Check that it's still running on the host device."; }
+}
 
-    refresh();
-    refreshDevices();
-    setInterval(() => { if (!document.hidden) { refresh(); refreshDevices(); } }, 4000);
-  </script>
+function send(file) {
+  const q = el("li", "q"), name = el("b", "", file.name), bar = el("div", "bar"), fill = el("i"), st = el("small", "", "Sending…");
+  bar.append(fill); q.append(name, bar, st); queue.prepend(q);
+  active++; drop.classList.add("sending");
+  const fd = new FormData(); fd.append("files", file);
+  const x = new XMLHttpRequest(); x.open("POST", "/upload");
+  x.upload.onprogress = e => { if (e.lengthComputable) fill.style.width = (e.loaded / e.total * 100) + "%"; };
+  const end = () => { if (--active === 0) drop.classList.remove("sending"); };
+  x.onload = () => {
+    end();
+    if (x.status === 200) { fill.style.width = "100%"; q.classList.add("done"); st.textContent = "Sent · " + size(file.size); refresh(); setTimeout(() => q.remove(), 4000); }
+    else { if (x.status === 401) setTimeout(() => location.reload(), 1500); let msg = "Upload failed. Try again."; try { msg = JSON.parse(x.responseText).error; } catch {} q.classList.add("fail"); st.textContent = msg; }
+  };
+  x.onerror = () => { end(); q.classList.add("fail"); st.textContent = "Lost the connection to ShaLo. Try again."; };
+  x.send(fd);
+}
+const sendAll = files => [...files].forEach(send);
+
+input.addEventListener("change", () => { sendAll(input.files); input.value = ""; });
+$("#pick").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+["dragenter","dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); if (t === "drop" || !drop.contains(e.relatedTarget)) drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => sendAll(e.dataTransfer.files));
+["dragover","drop"].forEach(t => window.addEventListener(t, e => e.preventDefault()));
+
+let urls = [], pick = 0, inv = null, note = "", poll = 0, tick = 0;
+function copyText(t) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+  const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0";
+  document.body.append(a); a.select(); try { document.execCommand("copy"); } catch {} a.remove();
+  return Promise.resolve();
+}
+function renderJoin() {
+  const nets = $("#nets"); nets.replaceChildren();
+  if (!urls.length || !inv) {
+    $("#qr").replaceChildren(); $("#pin").textContent = ""; $("#copy").hidden = true;
+    $("#addrText").textContent = urls.length ? "Code paused" : "No Wi-Fi address found";
+    return;
+  }
+  if (pick >= urls.length) pick = 0;
+  const base = urls[pick];
+  // The code is part of the QR; it works once and expires in 2 minutes
+  $("#qr").innerHTML = QR.svg(base + "/join?code=" + inv.code, "QR code for joining ShaLo");
+  $("#addrText").textContent = base.replace("http://", "");
+  $("#pin").textContent = inv.code.slice(0, 3) + " " + inv.code.slice(3);
+  $("#copy").hidden = false;
+  if (urls.length > 1) urls.forEach((x, i) => {
+    const b = el("button", "net", x.replace("http://", "")); b.type = "button"; b.setAttribute("aria-pressed", i === pick);
+    b.onclick = () => { pick = i; renderJoin(); };
+    nets.append(b);
+  });
+}
+function status() {
+  if (!inv) return;
+  const s = Math.max(0, Math.round((inv.expiresAt - Date.now()) / 1000));
+  $("#jmsg").textContent = note || "Works once. Expires in " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+function say(t) { note = t; status(); setTimeout(() => { note = ""; status(); }, 4000); }
+async function loadInvite() {
+  const r = await fetch("/api/invite");
+  if (!r.ok) throw new Error("no invite");
+  const d = await r.json();
+  urls = d.urls || [];
+  if (d.locked) {   // too many wrong guesses: ShaLo pauses new codes for a moment
+    const wasShowing = !!inv; inv = null;
+    if (wasShowing) renderJoin();
+    $("#jmsg").textContent = "Too many wrong codes were tried. A new code appears in " + d.locked + " seconds.";
+    return;
+  }
+  if (inv && d.joined > inv.joined) say("A device just joined. Here's a fresh code.");
+  const changed = !inv || inv.code !== d.code;
+  inv = { code: d.code, joined: d.joined, expiresAt: Date.now() + d.ttl * 1000 };
+  if (changed) renderJoin();
+  status();
+}
+$("#copy").addEventListener("click", () => {
+  const b = $("#copy"); copyText(urls[pick]).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy address", 1500); });
+});
+const dlg = $("#join");
+// A fresh code is made when the window opens and deleted when it closes
+$("#open").addEventListener("click", async () => {
+  if (dlg.open) return;
+  inv = null; pick = 0; note = "";
+  try { await loadInvite(); } catch { urls = []; }
+  renderJoin(); status(); dlg.showModal();
+  poll = setInterval(() => loadInvite().catch(() => {}), 2000);
+  tick = setInterval(status, 1000);
+});
+dlg.addEventListener("close", () => {
+  clearInterval(poll); clearInterval(tick); inv = null; note = "";
+  fetch("/api/invite", { method: "DELETE" }).catch(() => {});
+  ["#qr", "#nets"].forEach(s => $(s).replaceChildren());
+  ["#addrText", "#pin", "#jmsg"].forEach(s => $(s).textContent = "");
+});
+$("#close").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+refresh();
+refreshDevices();
+setInterval(() => { if (!document.hidden) { refresh(); refreshDevices(); } }, 4000);
+</script>
 </body>
-
 </html>
