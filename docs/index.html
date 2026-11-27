@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ShaLo — Send files both ways on your Wi-Fi</title>
   <meta name="description" content="ShaLo lets you send files both ways between any devices on your local Wi-Fi.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A4%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
@@ -47,6 +47,23 @@
       justify-content: space-between;
       gap: 16px 24px;
       margin-bottom: clamp(16px, 2.5vw, 24px);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: clamp(54px, 9vw, 84px);
+      height: clamp(54px, 9vw, 84px);
+      object-fit: contain;
+      border-radius: 18px;
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      background: var(--white);
+      flex: none;
     }
 
     h1 {
@@ -95,7 +112,17 @@
       padding: 4px 8px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+    }
+
+    .nav-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      border-radius: 7px;
+      border: 2px solid var(--ink);
+      background: var(--white);
+      flex: none;
     }
 
     .nav-links {
@@ -613,7 +640,10 @@
   <div class="wrap">
     <header>
       <div>
-        <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
+        <div class="title-row">
+          <img class="brand-logo" src="logo.png" alt="ShaLo logo" onerror="this.style.display='none'">
+          <h1><span class="sha">Sha</span><span class="lo">Lo</span></h1>
+        </div>
         <p class="tag">Share files between any devices on the same Wi-Fi. No accounts, no cloud, no internet needed.</p>
       </div>
       <div class="nav-actions">
@@ -623,7 +653,10 @@
     </header>
 
     <nav class="navbar" aria-label="Primary navigation">
-      <span class="nav-brand"><span style="color:var(--pink)">Sha</span><span style="color:var(--blue)">Lo</span></span>
+      <span class="nav-brand">
+        <img class="nav-logo" src="logo.png" alt="" onerror="this.style.display='none'">
+        <span><span style="color:var(--pink)">Sha</span><span style="color:var(--blue)">Lo</span></span>
+      </span>
       <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
       <div class="nav-links" id="navLinks" role="tablist">
         <button class="nav-btn" id="tab-project" role="tab" aria-selected="true" aria-controls="panel-project">Project</button>
